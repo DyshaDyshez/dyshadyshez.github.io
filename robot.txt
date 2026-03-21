@@ -1,0 +1,25 @@
+# Для всех поисковых систем
+User-agent: *
+Allow: /
+Disallow: /private/
+Disallow: /temp/
+
+# Для Яндекса (специальные правила)
+User-agent: Yandex
+Allow: /
+Disallow: /private/
+Disallow: /temp/
+
+# Для Google
+User-agent: Googlebot
+Allow: /
+Disallow: /private/
+Disallow: /temp/
+
+# Для остальных ботов
+User-agent: Mail.RU
+Allow: /
+
+# Указываем где лежит карта сайта
+Sitemap: https://dyshadyshez.github.io/Promt-Changer/sitemap.xml
+Host: https://dyshadyshez.github.io
