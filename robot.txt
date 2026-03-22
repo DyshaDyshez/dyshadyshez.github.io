@@ -7,14 +7,12 @@ Disallow: /temp/
 # Для Яндекса (специальные правила)
 User-agent: Yandex
 Allow: /
-Disallow: /private/
-Disallow: /temp/
+
 
 # Для Google
 User-agent: Googlebot
 Allow: /
-Disallow: /private/
-Disallow: /temp/
+
 
 # Для остальных ботов
 User-agent: Mail.RU
