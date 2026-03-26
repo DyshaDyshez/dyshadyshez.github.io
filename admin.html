@@ -241,13 +241,21 @@
 <body>
     <div id="app"></div>
 
-    <!-- Подключаем Supabase ТОЛЬКО ОДИН РАЗ -->
-    
     <script>
-        // ========== НАСТРОЙКИ SUPABASE ==========
+        // ========== ВСЁ В ОДНОМ ФАЙЛЕ, БЕЗ ДУБЛИРОВАНИЯ ==========
+        // Supabase будет инициализирован один раз в этом скрипте
+        
+        // ========== НАСТРОЙКИ ==========
         const SUPABASE_URL = 'https://ligmsihssbvolgdogaqm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gC9UkfH2xkJGqGlnIgd-YA_7Ksa09Xb';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Создаём клиент Supabase
+        const supabaseClient = supabase ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        
+        // Проверяем, что Supabase загружен
+        if (typeof supabase === 'undefined') {
+            console.error('Supabase не загружен!');
+        }
         
         // ========== ТЕМА ==========
         function initTheme() {
@@ -295,7 +303,7 @@
         
         async function login(password) {
             try {
-                const { data, error } = await supabase.rpc('check_admin_password', {
+                const { data, error } = await supabaseClient.rpc('check_admin_password', {
                     input_password: password
                 });
                 if (error) throw error;
@@ -325,7 +333,7 @@
         // ========== ЗАГРУЗКА ПРОМТОВ ==========
         async function loadPrompts() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('prompts')
                     .select('*')
                     .order('id', { ascending: false });
@@ -354,7 +362,7 @@
             try {
                 let result;
                 if (isEdit && editingPrompt) {
-                    result = await supabase
+                    result = await supabaseClient
                         .from('prompts')
                         .update({
                             title: promptData.title,
@@ -366,7 +374,7 @@
                         })
                         .eq('id', editingPrompt.id);
                 } else {
-                    result = await supabase
+                    result = await supabaseClient
                         .from('prompts')
                         .insert([{
                             title: promptData.title,
@@ -391,7 +399,7 @@
         async function deletePrompt(id) {
             if (!confirm('Удалить этот промт?')) return;
             try {
-                const { error } = await supabase.from('prompts').delete().eq('id', id);
+                const { error } = await supabaseClient.from('prompts').delete().eq('id', id);
                 if (error) throw error;
                 showToast('🗑️ Промт удалён');
                 await loadPrompts();
@@ -403,7 +411,7 @@
         
         async function duplicatePrompt(prompt) {
             try {
-                const { error } = await supabase.from('prompts').insert([{
+                const { error } = await supabaseClient.from('prompts').insert([{
                     title: `${prompt.title} (копия)`,
                     category: prompt.category,
                     prompt: prompt.prompt,
@@ -464,7 +472,7 @@
                     
                     <div class="prompts-table">
                         ${allPrompts.length === 0 ? '<p style="text-align:center; padding:2rem;">📭 Нет промтов. Добавьте первый!</p>' : `
-                            <table>
+                             <table>
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -491,7 +499,7 @@
                                         </tr>
                                     `).join('')}
                                 </tbody>
-                            </table>
+                             </table>
                         `}
                     </div>
                 </div>
@@ -578,14 +586,21 @@
         }
         
         // ========== ЗАПУСК ==========
-        (async function init() {
+        // Ждём загрузки страницы
+        window.addEventListener('DOMContentLoaded', async function() {
+            // Проверяем, что supabaseClient создан
+            if (!supabaseClient) {
+                document.getElementById('app').innerHTML = '<div class="login-container"><div class="login-box"><h2>❌ Ошибка</h2><p>Не удалось подключиться к Supabase</p></div></div>';
+                return;
+            }
+            
             const isLoggedIn = await checkAuth();
             if (isLoggedIn) {
                 await loadPrompts();
             } else {
                 renderLoginPage();
             }
-        })();
+        });
     </script>
 </body>
 </html>
