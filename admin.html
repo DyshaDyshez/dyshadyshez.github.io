@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ-панель | Промт-мастер</title>
@@ -190,7 +188,7 @@
             backdrop-filter: blur(10px);
             border-radius: 24px;
             padding: 2rem;
-            max-width: 500px;
+            max-width: 550px;
             width: 90%;
             max-height: 85vh;
             overflow-y: auto;
@@ -230,6 +228,80 @@
             margin-bottom: 1rem;
         }
         
+        /* Стили для тегов */
+        .tags-section {
+            margin-bottom: 1rem;
+        }
+        
+        .tags-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .tags-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .tag-option {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 30px;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .tag-option:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .tag-option.selected {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: var(--input-bg);
+            border-radius: 20px;
+            min-height: 50px;
+        }
+        
+        .selected-tag {
+            background: var(--accent);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .remove-tag {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+        
+        .remove-tag:hover {
+            opacity: 1;
+        }
+        
         @media (max-width: 700px) {
             .admin-container, .login-container {
                 padding: 1rem;
@@ -238,6 +310,10 @@
                 padding: 0.5rem;
                 font-size: 0.8rem;
             }
+            .tags-buttons {
+                max-height: 120px;
+                overflow-y: auto;
+            }
         }
     </style>
 </head>
@@ -245,20 +321,40 @@
     <div id="app"></div>
 
     <script>
-        // ========== ВСЁ В ОДНОМ ФАЙЛЕ, БЕЗ ДУБЛИРОВАНИЯ ==========
-        // Supabase будет инициализирован один раз в этом скрипте
-        
         // ========== НАСТРОЙКИ ==========
         const SUPABASE_URL = 'https://ligmsihssbvolgdogaqm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gC9UkfH2xkJGqGlnIgd-YA_7Ksa09Xb';
-        
-        // Создаём клиент Supabase
         const supabaseClient = supabase ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         
-        // Проверяем, что Supabase загружен
         if (typeof supabase === 'undefined') {
             console.error('Supabase не загружен!');
         }
+        
+        // ========== РАСШИРЕННЫЕ КАТЕГОРИИ ==========
+        const CATEGORIES = [
+            { id: 'midjourney', name: '🎨 Midjourney / Изображения', icon: '🎨' },
+            { id: 'chatgpt', name: '💬 ChatGPT / Текст', icon: '💬' },
+            { id: 'business', name: '💼 Бизнес / Маркетинг', icon: '💼' },
+            { id: 'creative', name: '✨ Креатив / Искусство', icon: '✨' },
+            { id: 'photo', name: '📷 Фото / Обработка фото', icon: '📷' },
+            { id: 'code', name: '💻 Код / Программирование', icon: '💻' },
+            { id: 'excel', name: '📊 Excel / Таблицы', icon: '📊' },
+            { id: 'video', name: '🎬 Видео / Анимация', icon: '🎬' },
+            { id: 'music', name: '🎵 Музыка / Аудио', icon: '🎵' },
+            { id: 'design', name: '🎨 Дизайн / UI/UX', icon: '🎨' },
+            { id: 'marketing', name: '📈 Маркетинг / Реклама', icon: '📈' },
+            { id: 'seo', name: '🔍 SEO / Оптимизация', icon: '🔍' },
+            { id: 'social', name: '📱 Соцсети / SMM', icon: '📱' }
+        ];
+        
+        // ========== ПРЕДЛОЖЕННЫЕ ТЕГИ ==========
+        const SUGGESTED_TAGS = [
+            'портрет', 'пейзаж', 'логотип', 'пост', 'статья', 'письмо',
+            'продажи', 'реклама', 'seo', 'контент', 'видео', 'сценарий',
+            'код', 'react', 'python', 'sql', 'excel', 'формула',
+            'фото', 'обработка', 'ретушь', 'нейросеть', 'midjourney', 'chatgpt',
+            'бизнес', 'креатив', 'дизайн', 'интерьер', 'мода', 'еда'
+        ];
         
         // ========== ТЕМА ==========
         function initTheme() {
@@ -475,7 +571,7 @@
                     
                     <div class="prompts-table">
                         ${allPrompts.length === 0 ? '<p style="text-align:center; padding:2rem;">📭 Нет промтов. Добавьте первый!</p>' : `
-                             <table>
+                            <table>
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -491,7 +587,7 @@
                                         <tr>
                                             <td>${p.id}</td>
                                             <td><strong>${escapeHtml(p.title)}</strong></td>
-                                            <td>${p.category}</td>
+                                            <td>${getCategoryIcon(p.category)} ${p.category}</td>
                                             <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(p.prompt)}">${escapeHtml(p.prompt.substring(0, 60))}...</td>
                                             <td>${p.copies || 0}</td>
                                             <td class="action-buttons">
@@ -502,7 +598,7 @@
                                         </tr>
                                     `).join('')}
                                 </tbody>
-                             </table>
+                            </table>
                         `}
                     </div>
                 </div>
@@ -530,24 +626,42 @@
             });
         }
         
+        function getCategoryIcon(categoryId) {
+            const cat = CATEGORIES.find(c => c.id === categoryId);
+            return cat ? cat.icon : '📌';
+        }
+        
         function openModal(prompt = null) {
             editingPrompt = prompt;
+            const currentTags = prompt?.tags || [];
+            
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.innerHTML = `
                 <div class="modal-content">
                     <h3>${prompt ? '✏️ Редактировать промт' : '➕ Новый промт'}</h3>
+                    
                     <input type="text" id="promptTitle" placeholder="Название промта" value="${escapeHtml(prompt?.title || '')}">
+                    
                     <select id="promptCategory">
-                        <option value="midjourney" ${prompt?.category === 'midjourney' ? 'selected' : ''}>🎨 Midjourney</option>
-                        <option value="chatgpt" ${prompt?.category === 'chatgpt' ? 'selected' : ''}>💬 ChatGPT</option>
-                        <option value="business" ${prompt?.category === 'business' ? 'selected' : ''}>💼 Бизнес</option>
-                        <option value="creative" ${prompt?.category === 'creative' ? 'selected' : ''}>✨ Креатив</option>
+                        ${CATEGORIES.map(cat => `
+                            <option value="${cat.id}" ${prompt?.category === cat.id ? 'selected' : ''}>${cat.name}</option>
+                        `).join('')}
                     </select>
+                    
                     <textarea id="promptDescription" rows="2" placeholder="Краткое описание">${escapeHtml(prompt?.description || '')}</textarea>
+                    
                     <textarea id="promptText" rows="4" placeholder="Текст промта (обязательно)">${escapeHtml(prompt?.prompt || '')}</textarea>
-                    <input type="text" id="promptTags" placeholder="Теги (через запятую)" value="${prompt?.tags ? prompt.tags.join(', ') : ''}">
+                    
+                    <div class="tags-section">
+                        <div class="tags-label">🏷️ Выберите теги (нажмите на кнопку):</div>
+                        <div class="tags-buttons" id="tagsButtons"></div>
+                        <div class="tags-label">✅ Выбранные теги:</div>
+                        <div class="selected-tags" id="selectedTags"></div>
+                    </div>
+                    
                     <input type="text" id="promptImage" placeholder="Ссылка на картинку (необязательно)" value="${escapeHtml(prompt?.image_url || '')}">
+                    
                     <div class="modal-buttons">
                         <button id="saveBtn">💾 Сохранить</button>
                         <button id="cancelBtn">Отмена</button>
@@ -556,6 +670,60 @@
             `;
             document.body.appendChild(modal);
             
+            // Управление тегами
+            let selectedTags = [...currentTags];
+            
+            function renderTagsButtons() {
+                const container = document.getElementById('tagsButtons');
+                if (!container) return;
+                container.innerHTML = SUGGESTED_TAGS.map(tag => `
+                    <div class="tag-option ${selectedTags.includes(tag) ? 'selected' : ''}" data-tag="${escapeHtml(tag)}">
+                        #${escapeHtml(tag)}
+                    </div>
+                `).join('');
+                
+                document.querySelectorAll('.tag-option').forEach(btn => {
+                    btn.onclick = () => {
+                        const tag = btn.dataset.tag;
+                        if (selectedTags.includes(tag)) {
+                            selectedTags = selectedTags.filter(t => t !== tag);
+                        } else {
+                            selectedTags.push(tag);
+                        }
+                        renderTagsButtons();
+                        renderSelectedTags();
+                    };
+                });
+            }
+            
+            function renderSelectedTags() {
+                const container = document.getElementById('selectedTags');
+                if (!container) return;
+                if (selectedTags.length === 0) {
+                    container.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem;">Нет выбранных тегов</span>';
+                    return;
+                }
+                container.innerHTML = selectedTags.map(tag => `
+                    <span class="selected-tag">
+                        #${escapeHtml(tag)}
+                        <span class="remove-tag" data-tag="${escapeHtml(tag)}">×</span>
+                    </span>
+                `).join('');
+                
+                document.querySelectorAll('.remove-tag').forEach(btn => {
+                    btn.onclick = () => {
+                        const tag = btn.dataset.tag;
+                        selectedTags = selectedTags.filter(t => t !== tag);
+                        renderTagsButtons();
+                        renderSelectedTags();
+                    };
+                });
+            }
+            
+            renderTagsButtons();
+            renderSelectedTags();
+            
+            // Сохранение
             document.getElementById('saveBtn').onclick = async () => {
                 const title = document.getElementById('promptTitle').value.trim();
                 const promptText = document.getElementById('promptText').value.trim();
@@ -567,17 +735,16 @@
                     showToast('❌ Введите текст промта', true);
                     return;
                 }
-                const tagsStr = document.getElementById('promptTags').value;
-                const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
                 await savePrompt({
                     title: title,
                     category: document.getElementById('promptCategory').value,
                     description: document.getElementById('promptDescription').value.trim(),
                     prompt: promptText,
-                    tags: tags,
+                    tags: selectedTags,
                     image_url: document.getElementById('promptImage').value.trim() || null
                 }, !!prompt);
             };
+            
             document.getElementById('cancelBtn').onclick = closeModal;
             modal.onclick = (e) => { if (e.target === modal) closeModal(); };
         }
@@ -589,9 +756,7 @@
         }
         
         // ========== ЗАПУСК ==========
-        // Ждём загрузки страницы
         window.addEventListener('DOMContentLoaded', async function() {
-            // Проверяем, что supabaseClient создан
             if (!supabaseClient) {
                 document.getElementById('app').innerHTML = '<div class="login-container"><div class="login-box"><h2>❌ Ошибка</h2><p>Не удалось подключиться к Supabase</p></div></div>';
                 return;
