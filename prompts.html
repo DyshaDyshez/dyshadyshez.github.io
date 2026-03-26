@@ -6,28 +6,17 @@
     <title>Готовые промты | Промт-мастер</title>
     <meta name="description" content="Коллекция готовых промтов для Midjourney, ChatGPT, DALL-E и других нейросетей. Копируй и используй сразу!">
     
-    <!-- Подключаем общий CSS -->
     <link rel="stylesheet" href="css/style.css">
-    
-    <!-- Мета-теги -->
     <meta name="robots" content="index, follow">
     <meta name="author" content="dyshadyshez">
     <meta name="theme-color" content="#4f6af5">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
-    <!-- Дополнительные стили только для этой страницы -->
     <style>
-        .library-header {
-            text-align: center;
-            margin: 1rem 0 2rem 0;
-        }
-        .library-header h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        .library-header p {
-            color: var(--text-muted);
-        }
+        /* (все существующие стили остаются, добавляем новые для модалки) */
+        .library-header { text-align: center; margin: 1rem 0 2rem; }
+        .library-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .library-header p { color: var(--text-muted); }
         .categories-filter {
             display: flex;
             flex-wrap: wrap;
@@ -45,15 +34,10 @@
             transition: 0.2s;
             color: var(--text-secondary);
         }
-        .category-btn:hover {
+        .category-btn:hover, .category-btn.active {
             background: var(--accent);
             color: white;
             transform: translateY(-2px);
-        }
-        .category-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
         }
         .prompts-grid {
             display: grid;
@@ -67,6 +51,7 @@
             border-radius: 24px;
             padding: 1.5rem;
             transition: all 0.3s;
+            cursor: pointer;
         }
         .prompt-card:hover {
             transform: translateY(-4px);
@@ -100,7 +85,6 @@
             color: var(--text-muted);
             font-size: 0.85rem;
             margin-bottom: 1rem;
-            line-height: 1.4;
         }
         .prompt-tags {
             display: flex;
@@ -153,20 +137,79 @@
             transform: scale(1.02);
             filter: brightness(1.1);
         }
-        .loading {
-            text-align: center;
+        /* Модальное окно */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
             padding: 2rem;
+            max-width: 700px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--input-border);
+            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+        .modal-full-prompt {
+            background: var(--input-bg);
+            border-radius: 20px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.9rem;
+            border: 1px solid var(--input-border);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .modal-copy {
+            background: var(--accent);
+            color: white;
+        }
+        .modal-improve {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+        }
+        .close-modal {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
             color: var(--text-muted);
         }
-        .error-message {
-            text-align: center;
-            padding: 2rem;
-            color: #e53e3e;
-        }
+        .loading, .error-message { text-align: center; padding: 2rem; color: var(--text-muted); }
         @media (max-width: 700px) {
-            .prompts-grid {
-                grid-template-columns: 1fr;
-            }
+            .prompts-grid { grid-template-columns: 1fr; }
+            .modal-content { padding: 1.5rem; }
         }
     </style>
 </head>
@@ -185,12 +228,10 @@
                 <img src="og-image_v2.png" alt="Промт-мастер" style="height: 80px; width: auto; border-radius: 8px;">
                 <span style="font-size: 2rem; font-weight: 500; margin-left: 15px; background: linear-gradient(to right, #4f6af5, #b0c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Промт-мастер</span>
             </div>
-            
             <nav class="main-nav">
                 <a href="index.html" class="nav-link">Главная</a>
                 <a href="prompts.html" class="nav-link active">Готовые промты</a>
             </nav>
-            
             <div class="theme-toggle" id="themeToggle">
                 <span>🌙</span>
                 <span>Тема</span>
@@ -228,40 +269,68 @@
         </div>
     </div>
 
-    <!-- Подключаем Supabase SDK (ТОЛЬКО ОДИН РАЗ) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Скрипт для работы с промтами -->
     <script>
-        // ========== НАСТРОЙКИ SUPABASE ==========
+        // ========== 1. НАСТРОЙКИ SUPABASE ==========
         const SUPABASE_URL = 'https://ligmsihssbvolgdogaqm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gC9UkfH2xkJGqGlnIgd-YA_7Ksa09Xb';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // Глобальные переменные
+        // ========== 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
         let allPrompts = [];
         let currentCategory = 'all';
         
-        // ========== ФУНКЦИИ ==========
+        // ========== 3. ТЕМА (СВЕТЛАЯ/ТЁМНАЯ) ==========
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                updateThemeToggleText(savedTheme);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = prefersDark ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+                updateThemeToggleText(theme);
+            }
+        }
+        function updateThemeToggleText(theme) {
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) {
+                toggle.innerHTML = theme === 'dark' ? '<span>☀️</span><span>Светлая</span>' : '<span>🌙</span><span>Тёмная</span>';
+            }
+        }
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeToggleText(theme);
+        }
+        // Обработчик переключателя темы
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const current = document.documentElement.getAttribute('data-theme');
+                const newTheme = current === 'dark' ? 'light' : 'dark';
+                setTheme(newTheme);
+            });
+        }
+        initTheme();
+        
+        // ========== 4. ФУНКЦИИ РАБОТЫ С ПРОМТАМИ ==========
         async function loadPromptsFromSupabase() {
             try {
                 const { data, error } = await supabaseClient
                     .from('prompts')
                     .select('*')
                     .order('id', { ascending: true });
-                
                 if (error) throw error;
-                
                 allPrompts = data || [];
                 renderPrompts(currentCategory);
-                
                 if (allPrompts.length === 0) {
                     document.getElementById('promptsGrid').innerHTML = '<div class="loading">📭 Пока нет промтов. Добавьте их в админ-панели!</div>';
                 }
-                
                 return allPrompts;
             } catch (error) {
-                console.error('Ошибка загрузки промтов:', error);
+                console.error(error);
                 document.getElementById('promptsGrid').innerHTML = '<div class="error-message">❌ Не удалось загрузить промты. Проверьте подключение к Supabase.</div>';
                 return [];
             }
@@ -269,12 +338,10 @@
         
         async function incrementCopyCount(promptId, currentCount) {
             try {
-                const { error } = await supabaseClient
+                await supabaseClient
                     .from('prompts')
                     .update({ copies: (currentCount || 0) + 1 })
                     .eq('id', promptId);
-                
-                if (error) throw error;
             } catch (error) {
                 console.error('Ошибка обновления счётчика:', error);
             }
@@ -283,104 +350,127 @@
         function renderPrompts(category = "all") {
             const container = document.getElementById('promptsGrid');
             if (!container) return;
-            
-            let filtered = allPrompts;
-            if (category !== "all") {
-                filtered = allPrompts.filter(p => p.category === category);
-            }
-            
+            let filtered = category === "all" ? allPrompts : allPrompts.filter(p => p.category === category);
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="loading">😕 Нет промтов в этой категории</div>';
                 return;
             }
-            
-            container.innerHTML = filtered.map(prompt => {
-                const imageUrl = prompt.image_url || '';
-                const copies = prompt.copies || 0;
-                
-                return `
-                    <div class="prompt-card" data-id="${prompt.id}">
-                        ${imageUrl ? `<img class="prompt-card-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prompt.title)}" loading="lazy">` : ''}
-                        <div class="prompt-category">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
-                        <h3 class="prompt-title">${escapeHtml(prompt.title)}</h3>
-                        <p class="prompt-description">${escapeHtml(prompt.description || '')}</p>
-                        <div class="prompt-tags">
-                            ${prompt.tags ? prompt.tags.map(tag => `<span class="prompt-tag">#${escapeHtml(tag)}</span>`).join('') : ''}
-                        </div>
-                        <div class="prompt-text-preview" title="${escapeHtml(prompt.prompt)}">
-                            ${escapeHtml(prompt.prompt.substring(0, 80))}...
-                        </div>
-                        <div class="prompt-footer">
-                            <span class="copy-count">📋 Копирований: ${copies}</span>
-                            <button class="copy-prompt-btn" data-id="${prompt.id}" data-prompt="${escapeHtml(prompt.prompt)}" data-copies="${copies}">
-                                📋 Копировать промт
-                            </button>
-                        </div>
+            container.innerHTML = filtered.map(prompt => `
+                <div class="prompt-card" data-prompt='${JSON.stringify(prompt)}'>
+                    ${prompt.image_url ? `<img class="prompt-card-image" src="${escapeHtml(prompt.image_url)}" alt="${escapeHtml(prompt.title)}" loading="lazy">` : ''}
+                    <div class="prompt-category">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
+                    <h3 class="prompt-title">${escapeHtml(prompt.title)}</h3>
+                    <p class="prompt-description">${escapeHtml(prompt.description || '')}</p>
+                    <div class="prompt-tags">${prompt.tags ? prompt.tags.map(tag => `<span class="prompt-tag">#${escapeHtml(tag)}</span>`).join('') : ''}</div>
+                    <div class="prompt-text-preview" title="${escapeHtml(prompt.prompt)}">${escapeHtml(prompt.prompt.substring(0, 80))}...</div>
+                    <div class="prompt-footer">
+                        <span class="copy-count">📋 Копирований: ${prompt.copies || 0}</span>
+                        <button class="copy-prompt-btn" data-id="${prompt.id}" data-prompt="${escapeHtml(prompt.prompt)}" data-copies="${prompt.copies || 0}">📋 Копировать промт</button>
                     </div>
-                `;
-            }).join('');
+                </div>
+            `).join('');
             
-            // Обработчики копирования
+            // Обработчики для кнопок копирования внутри карточек
             document.querySelectorAll('.copy-prompt-btn').forEach(btn => {
                 btn.addEventListener('click', async function(e) {
                     e.stopPropagation();
                     const promptText = this.getAttribute('data-prompt');
                     const promptId = parseInt(this.getAttribute('data-id'));
                     const currentCopies = parseInt(this.getAttribute('data-copies')) || 0;
-                    
-                    try {
-                        await navigator.clipboard.writeText(promptText);
-                        
-                        // Обновляем счётчик в Supabase
-                        await incrementCopyCount(promptId, currentCopies);
-                        
-                        // Обновляем локальные данные
-                        const promptIndex = allPrompts.findIndex(p => p.id === promptId);
-                        if (promptIndex !== -1) {
-                            allPrompts[promptIndex].copies = currentCopies + 1;
-                        }
-                        
-                        // Визуальный эффект
-                        const originalText = this.innerHTML;
-                        this.innerHTML = '✅ Скопировано!';
-                        setTimeout(() => {
-                            this.innerHTML = originalText;
-                        }, 1500);
-                        
-                        // Обновляем счётчик в карточке
-                        const copyCountSpan = this.closest('.prompt-card')?.querySelector('.copy-count');
-                        if (copyCountSpan) {
-                            copyCountSpan.textContent = `📋 Копирований: ${currentCopies + 1}`;
-                        }
-                        
-                    } catch (err) {
-                        console.error('Ошибка копирования:', err);
-                        alert('Не удалось скопировать текст');
-                    }
+                    await handleCopy(promptText, promptId, currentCopies, this);
+                });
+            });
+            
+            // Обработчики для клика по карточке (открыть модалку)
+            document.querySelectorAll('.prompt-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // Если клик был по кнопке копирования — не открываем модалку
+                    if (e.target.closest('.copy-prompt-btn')) return;
+                    const promptData = JSON.parse(card.dataset.prompt);
+                    openModal(promptData);
                 });
             });
         }
         
-        function getCategoryIcon(categoryId) {
-            const icons = {
-                midjourney: "🎨",
-                chatgpt: "💬",
-                business: "💼",
-                creative: "✨"
-            };
-            return icons[categoryId] || "📌";
+        async function handleCopy(promptText, promptId, currentCopies, buttonElement) {
+            try {
+                await navigator.clipboard.writeText(promptText);
+                await incrementCopyCount(promptId, currentCopies);
+                // Обновляем локальные данные
+                const idx = allPrompts.findIndex(p => p.id === promptId);
+                if (idx !== -1) allPrompts[idx].copies = currentCopies + 1;
+                // Визуальный эффект
+                const original = buttonElement.innerHTML;
+                buttonElement.innerHTML = '✅ Скопировано!';
+                setTimeout(() => { buttonElement.innerHTML = original; }, 1500);
+                // Обновляем счётчик в карточке
+                const copySpan = buttonElement.closest('.prompt-card')?.querySelector('.copy-count');
+                if (copySpan) copySpan.textContent = `📋 Копирований: ${currentCopies + 1}`;
+            } catch (err) {
+                alert('Не удалось скопировать текст');
+            }
         }
         
-        function getCategoryName(categoryId) {
-            const names = {
-                midjourney: "Midjourney",
-                chatgpt: "ChatGPT",
-                business: "Бизнес",
-                creative: "Креатив"
+        // ========== 5. МОДАЛЬНОЕ ОКНО ==========
+        function openModal(prompt) {
+            // Удаляем старую модалку, если есть
+            const existingModal = document.querySelector('.modal');
+            if (existingModal) existingModal.remove();
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3>📌 ${escapeHtml(prompt.title)}</h3>
+                    <div class="prompt-category" style="margin-bottom: 1rem;">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
+                    <p><strong>Описание:</strong> ${escapeHtml(prompt.description || 'Нет описания')}</p>
+                    <div class="modal-full-prompt">${escapeHtml(prompt.prompt)}</div>
+                    <div class="modal-buttons">
+                        <button class="modal-copy" data-prompt="${escapeHtml(prompt.prompt)}" data-id="${prompt.id}" data-copies="${prompt.copies || 0}">📋 Копировать</button>
+                        <button class="modal-improve" data-prompt="${escapeHtml(prompt.prompt)}">✨ Улучшить этот промт</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Закрытие по крестику или клику вне окна
+            modal.querySelector('.close-modal').onclick = () => modal.remove();
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            
+            // Кнопка копирования в модалке
+            const copyBtn = modal.querySelector('.modal-copy');
+            copyBtn.onclick = async () => {
+                const text = copyBtn.getAttribute('data-prompt');
+                const id = parseInt(copyBtn.getAttribute('data-id'));
+                const copies = parseInt(copyBtn.getAttribute('data-copies')) || 0;
+                await handleCopy(text, id, copies, copyBtn);
+                // Можно показать уведомление
+                const original = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✅ Скопировано!';
+                setTimeout(() => { copyBtn.innerHTML = original; }, 1500);
             };
-            return names[categoryId] || categoryId;
+            
+            // Кнопка "Улучшить" — копирует промт и переходит на главную
+            const improveBtn = modal.querySelector('.modal-improve');
+            improveBtn.onclick = () => {
+                const promptText = improveBtn.getAttribute('data-prompt');
+                // Сохраняем промт в localStorage или sessionStorage для переноса на главную
+                sessionStorage.setItem('improvePrompt', promptText);
+                // Переходим на главную страницу
+                window.location.href = 'index.html';
+            };
         }
         
+        // ========== 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        function getCategoryIcon(cat) {
+            const icons = { midjourney: "🎨", chatgpt: "💬", business: "💼", creative: "✨" };
+            return icons[cat] || "📌";
+        }
+        function getCategoryName(cat) {
+            const names = { midjourney: "Midjourney", chatgpt: "ChatGPT", business: "Бизнес", creative: "Креатив" };
+            return names[cat] || cat;
+        }
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -388,11 +478,9 @@
             return div.innerHTML;
         }
         
-        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        // ========== 7. ЗАПУСК ==========
         document.addEventListener('DOMContentLoaded', async () => {
             await loadPromptsFromSupabase();
-            
-            // Обработчики категорий
             const categoryBtns = document.querySelectorAll('.category-btn');
             categoryBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
