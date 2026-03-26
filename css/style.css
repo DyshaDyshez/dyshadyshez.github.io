@@ -437,3 +437,22 @@ details p {
     background: var(--accent);
     color: white;
 }
+
+.sort-btn {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 40px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 0.85rem;
+}
+.sort-btn:hover {
+    background: var(--accent);
+    color: white;
+    transform: translateY(-1px);
+}
+.sort-btn.active {
+    background: var(--accent);
+    color: white;
+}
