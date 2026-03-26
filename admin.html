@@ -52,7 +52,7 @@
         
         .login-container, .admin-container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1400px;
             background: var(--panel-bg);
             backdrop-filter: blur(10px);
             border: 1px solid var(--panel-border);
@@ -132,6 +132,78 @@
             color: var(--accent);
         }
         
+        /* Фильтры */
+        .filters-bar {
+            background: var(--input-bg);
+            border-radius: 24px;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .filter-group label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            margin-bottom: 0;
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .filter-group button {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            background: var(--accent);
+            margin-top: 0;
+        }
+        
+        .reset-filters {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-secondary);
+        }
+        
+        .reset-filters:hover {
+            background: #e53e3e;
+            color: white;
+            border-color: #e53e3e;
+        }
+        
+        .sort-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .sort-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-secondary);
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .sort-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        
         .prompts-table {
             overflow-x: auto;
             margin-top: 1rem;
@@ -150,6 +222,12 @@
         
         th {
             color: var(--accent);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        th:hover {
+            background: var(--input-bg);
         }
         
         .action-buttons {
@@ -225,7 +303,15 @@
         }
         
         .add-btn {
-            margin-bottom: 1rem;
+            margin-bottom: 0;
+        }
+        
+        .badge {
+            background: var(--accent);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
         }
         
         /* Стили для тегов */
@@ -310,9 +396,14 @@
                 padding: 0.5rem;
                 font-size: 0.8rem;
             }
-            .tags-buttons {
-                max-height: 120px;
-                overflow-y: auto;
+            .filters-bar {
+                flex-direction: column;
+            }
+            .filter-group {
+                width: 100%;
+            }
+            .sort-actions {
+                width: 100%;
             }
         }
     </style>
@@ -330,21 +421,21 @@
             console.error('Supabase не загружен!');
         }
         
-        // ========== РАСШИРЕННЫЕ КАТЕГОРИИ ==========
+        // ========== КАТЕГОРИИ ==========
         const CATEGORIES = [
-            { id: 'midjourney', name: '🎨 Midjourney / Изображения', icon: '🎨' },
-            { id: 'chatgpt', name: '💬 ChatGPT / Текст', icon: '💬' },
-            { id: 'business', name: '💼 Бизнес / Маркетинг', icon: '💼' },
-            { id: 'creative', name: '✨ Креатив / Искусство', icon: '✨' },
-            { id: 'photo', name: '📷 Фото / Обработка фото', icon: '📷' },
-            { id: 'code', name: '💻 Код / Программирование', icon: '💻' },
-            { id: 'excel', name: '📊 Excel / Таблицы', icon: '📊' },
-            { id: 'video', name: '🎬 Видео / Анимация', icon: '🎬' },
-            { id: 'music', name: '🎵 Музыка / Аудио', icon: '🎵' },
-            { id: 'design', name: '🎨 Дизайн / UI/UX', icon: '🎨' },
-            { id: 'marketing', name: '📈 Маркетинг / Реклама', icon: '📈' },
-            { id: 'seo', name: '🔍 SEO / Оптимизация', icon: '🔍' },
-            { id: 'social', name: '📱 Соцсети / SMM', icon: '📱' }
+            { id: 'midjourney', name: '🎨 Midjourney', icon: '🎨' },
+            { id: 'chatgpt', name: '💬 ChatGPT', icon: '💬' },
+            { id: 'business', name: '💼 Бизнес', icon: '💼' },
+            { id: 'creative', name: '✨ Креатив', icon: '✨' },
+            { id: 'photo', name: '📷 Фото', icon: '📷' },
+            { id: 'code', name: '💻 Код', icon: '💻' },
+            { id: 'excel', name: '📊 Excel', icon: '📊' },
+            { id: 'video', name: '🎬 Видео', icon: '🎬' },
+            { id: 'music', name: '🎵 Музыка', icon: '🎵' },
+            { id: 'design', name: '🎨 Дизайн', icon: '🎨' },
+            { id: 'marketing', name: '📈 Маркетинг', icon: '📈' },
+            { id: 'seo', name: '🔍 SEO', icon: '🔍' },
+            { id: 'social', name: '📱 Соцсети', icon: '📱' }
         ];
         
         // ========== ПРЕДЛОЖЕННЫЕ ТЕГИ ==========
@@ -370,7 +461,17 @@
         
         // ========== СОСТОЯНИЕ ==========
         let allPrompts = [];
+        let filteredPrompts = [];
         let editingPrompt = null;
+        
+        // Фильтры
+        let filters = {
+            search: '',
+            category: 'all'
+        };
+        
+        let sortField = 'id';
+        let sortDirection = 'desc';
         
         // ========== ВСПОМОГАТЕЛЬНЫЕ ==========
         function showToast(msg, isError = false) {
@@ -429,7 +530,7 @@
             renderLoginPage();
         }
         
-        // ========== ЗАГРУЗКА ПРОМТОВ ==========
+        // ========== ЗАГРУЗКА И ФИЛЬТРАЦИЯ ==========
         async function loadPrompts() {
             try {
                 const { data, error } = await supabaseClient
@@ -438,7 +539,7 @@
                     .order('id', { ascending: false });
                 if (error) throw error;
                 allPrompts = data || [];
-                renderAdminPanel();
+                applyFiltersAndSort();
                 return allPrompts;
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
@@ -447,12 +548,59 @@
             }
         }
         
+        function applyFiltersAndSort() {
+            let result = [...allPrompts];
+            
+            // Фильтр по поиску
+            if (filters.search.trim()) {
+                const searchTerm = filters.search.toLowerCase();
+                result = result.filter(p => 
+                    p.title.toLowerCase().includes(searchTerm) ||
+                    (p.description && p.description.toLowerCase().includes(searchTerm)) ||
+                    p.prompt.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Фильтр по категории
+            if (filters.category !== 'all') {
+                result = result.filter(p => p.category === filters.category);
+            }
+            
+            // Сортировка
+            result.sort((a, b) => {
+                let aVal = a[sortField];
+                let bVal = b[sortField];
+                
+                if (sortField === 'copies') {
+                    aVal = aVal || 0;
+                    bVal = bVal || 0;
+                }
+                
+                if (sortDirection === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+            
+            filteredPrompts = result;
+            renderAdminPanel();
+        }
+        
+        function resetFilters() {
+            filters = { search: '', category: 'all' };
+            sortField = 'id';
+            sortDirection = 'desc';
+            applyFiltersAndSort();
+        }
+        
         async function getStats() {
             const totalCopies = allPrompts.reduce((sum, p) => sum + (p.copies || 0), 0);
             return {
                 total: allPrompts.length,
                 totalCopies: totalCopies,
-                avgCopies: allPrompts.length ? (totalCopies / allPrompts.length).toFixed(1) : 0
+                avgCopies: allPrompts.length ? (totalCopies / allPrompts.length).toFixed(1) : 0,
+                filteredCount: filteredPrompts.length
             };
         }
         
@@ -554,6 +702,7 @@
         async function renderAdminPanel() {
             const stats = await getStats();
             const app = document.getElementById('app');
+            
             app.innerHTML = `
                 <div class="admin-container">
                     <div class="admin-header">
@@ -563,14 +712,48 @@
                     
                     <div class="stats-grid">
                         <div class="stat-card"><div class="stat-value">${stats.total}</div><div>Всего промтов</div></div>
+                        <div class="stat-card"><div class="stat-value">${stats.filteredCount}</div><div>Показано</div></div>
                         <div class="stat-card"><div class="stat-value">${stats.totalCopies}</div><div>Всего копирований</div></div>
                         <div class="stat-card"><div class="stat-value">${stats.avgCopies}</div><div>Среднее копирований</div></div>
                     </div>
                     
-                    <button id="addBtn" class="add-btn">+ Добавить новый промт</button>
+                    <div class="filters-bar">
+                        <div class="filter-group">
+                            <label>🔍 Поиск по названию</label>
+                            <input type="text" id="searchInput" placeholder="Название или описание..." value="${escapeHtml(filters.search)}">
+                        </div>
+                        <div class="filter-group">
+                            <label>📂 Категория</label>
+                            <select id="categoryFilter">
+                                <option value="all">Все категории</option>
+                                ${CATEGORIES.map(cat => `
+                                    <option value="${cat.id}" ${filters.category === cat.id ? 'selected' : ''}>${cat.name}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group sort-actions">
+                            <label>📊 Сортировка</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="sort-btn ${sortField === 'id' ? 'active' : ''}" data-field="id">По ID</button>
+                                <button class="sort-btn ${sortField === 'title' ? 'active' : ''}" data-field="title">По названию</button>
+                                <button class="sort-btn ${sortField === 'copies' ? 'active' : ''}" data-field="copies">По популярности</button>
+                                <button class="sort-btn" id="sortDirBtn">${sortDirection === 'desc' ? '↓ По убыванию' : '↑ По возрастанию'}</button>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label> </label>
+                            <button id="applyFiltersBtn">🔍 Применить фильтры</button>
+                            <button id="resetFiltersBtn" class="reset-filters">🔄 Сбросить</button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                        <button id="addBtn" class="add-btn">+ Добавить новый промт</button>
+                        <span class="badge">Найдено: ${filteredPrompts.length}</span>
+                    </div>
                     
                     <div class="prompts-table">
-                        ${allPrompts.length === 0 ? '<p style="text-align:center; padding:2rem;">📭 Нет промтов. Добавьте первый!</p>' : `
+                        ${filteredPrompts.length === 0 ? '<p style="text-align:center; padding:2rem;">📭 Нет промтов по заданным фильтрам</p>' : `
                             <table>
                                 <thead>
                                     <tr>
@@ -583,7 +766,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${allPrompts.map(p => `
+                                    ${filteredPrompts.map(p => `
                                         <tr>
                                             <td>${p.id}</td>
                                             <td><strong>${escapeHtml(p.title)}</strong></td>
@@ -604,8 +787,31 @@
                 </div>
             `;
             
+            // Обработчики
             document.getElementById('logoutBtn').onclick = logout;
             document.getElementById('addBtn').onclick = () => openModal();
+            document.getElementById('applyFiltersBtn').onclick = () => {
+                filters.search = document.getElementById('searchInput').value;
+                filters.category = document.getElementById('categoryFilter').value;
+                applyFiltersAndSort();
+            };
+            document.getElementById('resetFiltersBtn').onclick = () => {
+                resetFilters();
+                document.getElementById('searchInput').value = '';
+                document.getElementById('categoryFilter').value = 'all';
+            };
+            
+            // Сортировка
+            document.querySelectorAll('.sort-btn[data-field]').forEach(btn => {
+                btn.onclick = () => {
+                    sortField = btn.dataset.field;
+                    applyFiltersAndSort();
+                };
+            });
+            document.getElementById('sortDirBtn').onclick = () => {
+                sortDirection = sortDirection === 'desc' ? 'asc' : 'desc';
+                applyFiltersAndSort();
+            };
             
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.onclick = () => {
@@ -670,7 +876,6 @@
             `;
             document.body.appendChild(modal);
             
-            // Управление тегами
             let selectedTags = [...currentTags];
             
             function renderTagsButtons() {
@@ -723,7 +928,6 @@
             renderTagsButtons();
             renderSelectedTags();
             
-            // Сохранение
             document.getElementById('saveBtn').onclick = async () => {
                 const title = document.getElementById('promptTitle').value.trim();
                 const promptText = document.getElementById('promptText').value.trim();
