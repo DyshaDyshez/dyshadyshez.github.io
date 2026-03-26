@@ -8,6 +8,41 @@
 
 
 
+.prompts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+@media (max-width: 550px) {
+    .prompts-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+    
+    .prompt-card {
+        padding: 1rem;
+    }
+}
+
+
+
+.prompts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+@media (max-width: 600px) {
+    .prompts-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+}
+
+
 /* Исправление для телефонов */
 @media (max-width: 480px) {
     .prompts-grid {
