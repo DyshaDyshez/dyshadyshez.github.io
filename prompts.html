@@ -78,6 +78,7 @@
             padding: 1.5rem;
             transition: all 0.3s;
             cursor: pointer;
+            position: relative;
         }
         .prompt-card:hover {
             transform: translateY(-4px);
@@ -148,7 +149,7 @@
             font-size: 0.7rem;
             color: var(--text-muted);
         }
-        .copy-prompt-btn {
+        .copy-prompt-btn, .improve-prompt-btn {
             background: var(--accent);
             color: white;
             border: none;
@@ -157,13 +158,22 @@
             cursor: pointer;
             font-weight: 500;
             transition: 0.2s;
-            flex: 1;
+        }
+        .improve-prompt-btn {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--input-border);
             margin-left: 0.5rem;
+        }
+        .improve-prompt-btn:hover {
+            background: var(--accent);
+            color: white;
         }
         .copy-prompt-btn:hover {
             transform: scale(1.02);
             filter: brightness(1.1);
         }
+        
         /* Модальное окно */
         .modal {
             position: fixed;
@@ -233,6 +243,83 @@
             cursor: pointer;
             color: var(--text-muted);
         }
+        
+        /* Окно улучшения */
+        .improve-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 1.5rem;
+            max-width: 450px;
+            width: 90%;
+            z-index: 3000;
+            border: 1px solid var(--accent);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        .improve-popup h4 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+        .improve-popup select, .improve-popup input, .improve-popup textarea {
+            width: 100%;
+            padding: 0.7rem;
+            margin-bottom: 1rem;
+            border-radius: 40px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+        }
+        .improve-popup textarea {
+            min-height: 80px;
+            border-radius: 20px;
+            resize: vertical;
+        }
+        .improve-popup .popup-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .improve-popup .popup-buttons button {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .generate-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+        .cancel-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+        }
+        .improve-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2999;
+        }
         .loading, .error-message {
             text-align: center;
             padding: 2rem;
@@ -244,6 +331,10 @@
             }
             .modal-content {
                 padding: 1.5rem;
+            }
+            .improve-popup {
+                width: 95%;
+                padding: 1rem;
             }
         }
     </style>
@@ -260,7 +351,7 @@
     <div class="main-panel">
         <div class="header">
             <div style="display: flex; align-items: center;">
-                <img src="ref_img/ready_promts.png" alt="Промт-мастер" style="height: 80px; width: auto; border-radius: 8px;">
+                <img src="og-image_v2.png" alt="Промт-мастер" style="height: 80px; width: auto; border-radius: 8px;">
                 <span style="font-size: 2rem; font-weight: 500; margin-left: 15px; background: linear-gradient(to right, #4f6af5, #b0c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Промт-мастер</span>
             </div>
             <nav class="main-nav">
@@ -329,7 +420,83 @@
         // ========== ПЕРЕМЕННЫЕ ==========
         let allPrompts = [];
         let currentCategory = 'all';
-        let sortMode = 'default'; // 'default' или 'popular'
+        let sortMode = 'default';
+        
+        // ========== НАСТРОЙКИ ДЛЯ КАЖДОЙ КАТЕГОРИИ ==========
+        const categoryImproveConfig = {
+            midjourney: {
+                title: "🎨 Midjourney — настрой улучшения",
+                fields: [
+                    { name: "style", label: "Стиль", type: "select", options: ["реализм", "киберпанк", "фэнтези", "импрессионизм", "минимализм", "сюрреализм", "акварель", "аниме"] },
+                    { name: "aspect", label: "Соотношение сторон", type: "select", options: ["16:9", "1:1", "9:16", "21:9"] },
+                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                    { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Например: неоновая подсветка, городской пейзаж..." }
+                ]
+            },
+            photo: {
+                title: "📷 Фото — настрой улучшения",
+                fields: [
+                    { name: "style", label: "Стиль обработки", type: "select", options: ["портретная ретушь", "киношный", "винтаж", "черно-белый", "HDR", "пастельный"] },
+                    { name: "purpose", label: "Для чего", type: "select", options: ["На моем фото", "Для персонажа", "Для продукта", "Для пейзажа"] },
+                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                    { name: "context", label: "Дополнительные пожелания", type: "textarea", placeholder: "Убрать фон, добавить эффекты..." }
+                ]
+            },
+            chatgpt: {
+                title: "💬 ChatGPT — настрой улучшения",
+                fields: [
+                    { name: "tone", label: "Тон текста", type: "select", options: ["официальный", "дружелюбный", "юмористический", "убедительный", "научный", "поэтический"] },
+                    { name: "length", label: "Объём", type: "select", options: ["кратко", "средне", "развёрнуто"] },
+                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                    { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Целевая аудитория, ключевые сообщения..." }
+                ]
+            },
+            business: {
+                title: "💼 Бизнес — настрой улучшения",
+                fields: [
+                    { name: "style", label: "Стиль", type: "select", options: ["убедительный", "информационный", "вирусный", "сторителлинг", "лаконичный"] },
+                    { name: "target", label: "Целевая аудитория", type: "select", options: ["B2B", "B2C", "инвесторы", "партнёры"] },
+                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                    { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Уникальное предложение, бюджет, сроки..." }
+                ]
+            },
+            code: {
+                title: "💻 Код — настрой улучшения",
+                fields: [
+                    { name: "style", label: "Стиль кода", type: "select", options: ["чистый", "комментированный", "оптимизированный", "ООП", "функциональный"] },
+                    { name: "language", label: "Язык", type: "select", options: ["JavaScript", "Python", "TypeScript", "SQL", "другой"] },
+                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                    { name: "context", label: "Дополнительные требования", type: "textarea", placeholder: "Библиотеки, фреймворки, примеры..." }
+                ]
+            },
+            excel: {
+                title: "📊 Excel — настрой улучшения",
+                fields: [
+                    { name: "type", label: "Тип", type: "select", options: ["формула", "макрос VBA", "сводная таблица", "диаграмма"] },
+                    { name: "complexity", label: "Сложность", type: "select", options: ["базовый", "продвинутый", "экспертный"] },
+                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                    { name: "context", label: "Данные и требования", type: "textarea", placeholder: "Структура данных, нужные функции..." }
+                ]
+            },
+            creative: {
+                title: "✨ Креатив — настрой улучшения",
+                fields: [
+                    { name: "style", label: "Стиль", type: "select", options: ["поэтический", "игровой", "эпический", "минималистичный", "сюрреалистичный"] },
+                    { name: "mood", label: "Настроение", type: "select", options: ["радостное", "таинственное", "драматичное", "романтичное", "юмористичное"] },
+                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                    { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Персонажи, локации, ключевые элементы..." }
+                ]
+            }
+        };
+        
+        // Общие настройки для остальных категорий
+        const defaultConfig = {
+            title: "✨ Настрой улучшения",
+            fields: [
+                { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Что нужно учесть?" }
+            ]
+        };
         
         // ========== ТЕМА ==========
         function initTheme() {
@@ -433,9 +600,14 @@
                         <div class="prompt-text-preview" title="${escapeHtml(prompt.prompt)}">${escapeHtml(prompt.prompt.substring(0, 80))}...</div>
                         <div class="prompt-footer">
                             <span class="copy-count">📋 Копирований: ${copies}</span>
-                            <button class="copy-prompt-btn" data-id="${prompt.id}" data-prompt="${escapeHtml(prompt.prompt)}" data-copies="${copies}">
-                                📋 Копировать промт
-                            </button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="copy-prompt-btn" data-id="${prompt.id}" data-prompt="${escapeHtml(prompt.prompt)}" data-copies="${copies}">
+                                    📋 Копировать
+                                </button>
+                                <button class="improve-prompt-btn" data-prompt='${JSON.stringify(prompt)}'>
+                                    ✨ Улучшить
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -451,9 +623,17 @@
                 });
             });
             
+            document.querySelectorAll('.improve-prompt-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const promptData = JSON.parse(btn.getAttribute('data-prompt'));
+                    openImprovePopup(promptData);
+                });
+            });
+            
             document.querySelectorAll('.prompt-card').forEach(card => {
                 card.addEventListener('click', (e) => {
-                    if (e.target.closest('.copy-prompt-btn')) return;
+                    if (e.target.closest('.copy-prompt-btn') || e.target.closest('.improve-prompt-btn')) return;
                     const promptData = JSON.parse(card.dataset.prompt);
                     openModal(promptData);
                 });
@@ -481,6 +661,117 @@
             }
         }
         
+        // ========== ФУНКЦИЯ УЛУЧШЕНИЯ ==========
+        function openImprovePopup(prompt) {
+            const config = categoryImproveConfig[prompt.category] || defaultConfig;
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'improve-overlay';
+            
+            const popup = document.createElement('div');
+            popup.className = 'improve-popup';
+            
+            let fieldsHtml = '';
+            config.fields.forEach(field => {
+                if (field.type === 'select') {
+                    fieldsHtml += `
+                        <label style="display: block; margin-bottom: 0.3rem; font-size: 0.8rem;">${field.label}</label>
+                        <select id="improve_${field.name}">
+                            ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    `;
+                } else if (field.type === 'range') {
+                    const defaultValue = field.default || 3;
+                    fieldsHtml += `
+                        <label style="display: block; margin-bottom: 0.3rem; font-size: 0.8rem;">${field.label}: <span id="improve_${field.name}_value">${defaultValue}</span></label>
+                        <input type="range" id="improve_${field.name}" min="${field.min}" max="${field.max}" value="${defaultValue}" step="1">
+                        <script>
+                            document.getElementById('improve_${field.name}').oninput = function() {
+                                document.getElementById('improve_${field.name}_value').textContent = this.value;
+                            };
+                        <\/script>
+                    `;
+                } else if (field.type === 'textarea') {
+                    fieldsHtml += `
+                        <label style="display: block; margin-bottom: 0.3rem; font-size: 0.8rem;">${field.label}</label>
+                        <textarea id="improve_${field.name}" rows="2" placeholder="${field.placeholder || ''}"></textarea>
+                    `;
+                }
+            });
+            
+            popup.innerHTML = `
+                <h4>${config.title}</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Исходный промт: <strong>${escapeHtml(prompt.title)}</strong></p>
+                ${fieldsHtml}
+                <div class="popup-buttons">
+                    <button class="generate-btn" id="generateImprovedBtn">✨ Сгенерировать улучшенный промт</button>
+                    <button class="cancel-btn" id="cancelImproveBtn">Отмена</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(popup);
+            
+            document.getElementById('cancelImproveBtn').onclick = () => {
+                overlay.remove();
+                popup.remove();
+            };
+            
+            overlay.onclick = () => {
+                overlay.remove();
+                popup.remove();
+            };
+            
+            document.getElementById('generateImprovedBtn').onclick = () => {
+                const values = {};
+                config.fields.forEach(field => {
+                    const el = document.getElementById(`improve_${field.name}`);
+                    if (el) values[field.name] = el.value;
+                });
+                
+                const improvedPrompt = generateImprovedPrompt(prompt, values);
+                
+                // Сохраняем в sessionStorage и перенаправляем на главную
+                sessionStorage.setItem('improvePrompt', improvedPrompt);
+                sessionStorage.setItem('improveCategory', prompt.category);
+                window.location.href = 'index.html';
+            };
+        }
+        
+        function generateImprovedPrompt(prompt, values) {
+            let result = prompt.prompt;
+            
+            if (values.style) {
+                result = `${result} in ${values.style} style`;
+            }
+            if (values.tone) {
+                result = `${result}. Tone: ${values.tone}`;
+            }
+            if (values.aspect) {
+                result = `${result} --ar ${values.aspect}`;
+            }
+            if (values.detail) {
+                const detailLevels = {
+                    1: 'minimal detail',
+                    2: 'medium detail',
+                    3: 'above average detail',
+                    4: 'high detail',
+                    5: 'maximum detail'
+                };
+                result = `${result}, ${detailLevels[values.detail] || 'detailed'}`;
+            }
+            if (values.context) {
+                result = `${result}. Additional context: ${values.context}`;
+            }
+            if (values.purpose) {
+                result = `${result}. Purpose: ${values.purpose}`;
+            }
+            if (values.length === 'кратко') result = `${result}. Keep it concise.`;
+            if (values.length === 'развёрнуто') result = `${result}. Provide detailed explanation.`;
+            
+            return result;
+        }
+        
         // ========== МОДАЛЬНОЕ ОКНО ==========
         function openModal(prompt) {
             const existingModal = document.querySelector('.modal');
@@ -489,19 +780,19 @@
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.innerHTML = `
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h3>📌 ${escapeHtml(prompt.title)}</h3>
-        <div class="prompt-category" style="margin-bottom: 1rem;">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
-        ${prompt.image_url ? `<img src="${escapeHtml(prompt.image_url)}" alt="${escapeHtml(prompt.title)}" style="width: 100%; border-radius: 20px; margin-bottom: 1rem; max-height: 300px; object-fit: cover;">` : ''}
-        <p><strong>Описание:</strong> ${escapeHtml(prompt.description || 'Нет описания')}</p>
-        <div class="modal-full-prompt">${escapeHtml(prompt.prompt)}</div>
-        <div class="modal-buttons">
-            <button class="modal-copy" data-prompt="${escapeHtml(prompt.prompt)}" data-id="${prompt.id}" data-copies="${prompt.copies || 0}">📋 Копировать</button>
-            <button class="modal-improve" data-prompt="${escapeHtml(prompt.prompt)}">✨ Улучшить этот промт</button>
-        </div>
-    </div>
-`;
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3>📌 ${escapeHtml(prompt.title)}</h3>
+                    <div class="prompt-category" style="margin-bottom: 1rem;">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
+                    ${prompt.image_url ? `<img src="${escapeHtml(prompt.image_url)}" alt="${escapeHtml(prompt.title)}" style="width: 100%; border-radius: 20px; margin-bottom: 1rem; max-height: 300px; object-fit: cover;">` : ''}
+                    <p><strong>Описание:</strong> ${escapeHtml(prompt.description || 'Нет описания')}</p>
+                    <div class="modal-full-prompt">${escapeHtml(prompt.prompt)}</div>
+                    <div class="modal-buttons">
+                        <button class="modal-copy" data-prompt="${escapeHtml(prompt.prompt)}" data-id="${prompt.id}" data-copies="${prompt.copies || 0}">📋 Копировать</button>
+                        <button class="modal-improve" data-prompt='${JSON.stringify(prompt)}'>✨ Улучшить этот промт</button>
+                    </div>
+                </div>
+            `;
             document.body.appendChild(modal);
             
             modal.querySelector('.close-modal').onclick = () => modal.remove();
@@ -520,9 +811,9 @@
             
             const improveBtn = modal.querySelector('.modal-improve');
             improveBtn.onclick = () => {
-                const promptText = improveBtn.getAttribute('data-prompt');
-                sessionStorage.setItem('improvePrompt', promptText);
-                window.location.href = 'index.html';
+                const promptData = JSON.parse(improveBtn.getAttribute('data-prompt'));
+                modal.remove();
+                openImprovePopup(promptData);
             };
         }
         
