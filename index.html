@@ -198,9 +198,18 @@
     
     <!-- ПОДКЛЮЧАЕМ ВНЕШНИЙ JS -->
     <script src="js/script.js"></script>
-    
+
     <!-- ОСТАЛЬНЫЕ СКРИПТЫ (JSON-LD) ОСТАЮТСЯ -->
     <script type="application/ld+json">
+
+        // Проверяем, есть ли промт, переданный со страницы промтов
+const savedPrompt = sessionStorage.getItem('improvePrompt');
+if (savedPrompt) {
+    rawPrompt.value = savedPrompt;
+    sessionStorage.removeItem('improvePrompt');
+    // Опционально: автоматически нажать кнопку улучшения
+    setTimeout(() => enhanceBtn.click(), 100);
+}
     <!-- ... -->
     </script>
 </body>
