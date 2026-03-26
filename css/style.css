@@ -406,3 +406,6 @@ details p {
     .aspect-btn[data-ratio] { width: auto !important; flex: 1; }
     .footer { flex-direction: column; gap: 0.5rem; }
 }
+body {
+    overflow-x: hidden;
+}
