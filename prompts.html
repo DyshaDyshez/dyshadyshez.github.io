@@ -13,16 +13,23 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
     <style>
-        /* (все существующие стили остаются, добавляем новые для модалки) */
-        .library-header { text-align: center; margin: 1rem 0 2rem; }
-        .library-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-        .library-header p { color: var(--text-muted); }
+        .library-header {
+            text-align: center;
+            margin: 1rem 0 2rem;
+        }
+        .library-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .library-header p {
+            color: var(--text-muted);
+        }
         .categories-filter {
             display: flex;
             flex-wrap: wrap;
             gap: 0.8rem;
             justify-content: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
         .category-btn {
             background: var(--input-bg);
@@ -38,6 +45,25 @@
             background: var(--accent);
             color: white;
             transform: translateY(-2px);
+        }
+        .sort-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .sort-btn:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-1px);
+        }
+        .sort-btn.active {
+            background: var(--accent);
+            color: white;
         }
         .prompts-grid {
             display: grid;
@@ -85,6 +111,7 @@
             color: var(--text-muted);
             font-size: 0.85rem;
             margin-bottom: 1rem;
+            line-height: 1.4;
         }
         .prompt-tags {
             display: flex;
@@ -206,10 +233,18 @@
             cursor: pointer;
             color: var(--text-muted);
         }
-        .loading, .error-message { text-align: center; padding: 2rem; color: var(--text-muted); }
+        .loading, .error-message {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
         @media (max-width: 700px) {
-            .prompts-grid { grid-template-columns: 1fr; }
-            .modal-content { padding: 1.5rem; }
+            .prompts-grid {
+                grid-template-columns: 1fr;
+            }
+            .modal-content {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -244,22 +279,27 @@
         </div>
 
         <div class="categories-filter" id="categoriesFilter">
-    <button class="category-btn active" data-category="all">🎯 Все</button>
-    <button class="category-btn" data-category="midjourney">🎨 Midjourney</button>
-    <button class="category-btn" data-category="chatgpt">💬 ChatGPT</button>
-    <button class="category-btn" data-category="business">💼 Бизнес</button>
-    <button class="category-btn" data-category="creative">✨ Креатив</button>
-    <button class="category-btn" data-category="photo">📷 Фото</button>
-    <button class="category-btn" data-category="code">💻 Код</button>
-    <button class="category-btn" data-category="excel">📊 Excel</button>
-</div>
+            <button class="category-btn active" data-category="all">🎯 Все</button>
+            <button class="category-btn" data-category="midjourney">🎨 Midjourney</button>
+            <button class="category-btn" data-category="chatgpt">💬 ChatGPT</button>
+            <button class="category-btn" data-category="business">💼 Бизнес</button>
+            <button class="category-btn" data-category="creative">✨ Креатив</button>
+            <button class="category-btn" data-category="photo">📷 Фото</button>
+            <button class="category-btn" data-category="code">💻 Код</button>
+            <button class="category-btn" data-category="excel">📊 Excel</button>
+            <button class="category-btn" data-category="video">🎬 Видео</button>
+            <button class="category-btn" data-category="music">🎵 Музыка</button>
+            <button class="category-btn" data-category="design">🎨 Дизайн</button>
+            <button class="category-btn" data-category="marketing">📈 Маркетинг</button>
+            <button class="category-btn" data-category="seo">🔍 SEO</button>
+            <button class="category-btn" data-category="social">📱 Соцсети</button>
+        </div>
 
-<!-- КНОПКА СОРТИРОВКИ -->
-<div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
-    <button id="sortByCopiesBtn" class="sort-btn" style="background: var(--input-bg); color: var(--text-secondary); border: 1px solid var(--input-border);">
-        📊 По популярности ↓
-    </button>
-</div>
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+            <button id="sortByCopiesBtn" class="sort-btn">
+                📊 По популярности ↓
+            </button>
+        </div>
 
         <div class="prompts-grid" id="promptsGrid">
             <div class="loading">Загрузка промтов...</div>
@@ -281,16 +321,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ========== 1. НАСТРОЙКИ SUPABASE ==========
+        // ========== НАСТРОЙКИ SUPABASE ==========
         const SUPABASE_URL = 'https://ligmsihssbvolgdogaqm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gC9UkfH2xkJGqGlnIgd-YA_7Ksa09Xb';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // ========== 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+        // ========== ПЕРЕМЕННЫЕ ==========
         let allPrompts = [];
         let currentCategory = 'all';
+        let sortMode = 'default'; // 'default' или 'popular'
         
-        // ========== 3. ТЕМА (СВЕТЛАЯ/ТЁМНАЯ) ==========
+        // ========== ТЕМА ==========
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {
@@ -303,18 +344,20 @@
                 updateThemeToggleText(theme);
             }
         }
+        
         function updateThemeToggleText(theme) {
             const toggle = document.getElementById('themeToggle');
             if (toggle) {
                 toggle.innerHTML = theme === 'dark' ? '<span>☀️</span><span>Светлая</span>' : '<span>🌙</span><span>Тёмная</span>';
             }
         }
+        
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
             updateThemeToggleText(theme);
         }
-        // Обработчик переключателя темы
+        
         const themeToggleBtn = document.getElementById('themeToggle');
         if (themeToggleBtn) {
             themeToggleBtn.addEventListener('click', () => {
@@ -325,7 +368,7 @@
         }
         initTheme();
         
-        // ========== 4. ФУНКЦИИ РАБОТЫ С ПРОМТАМИ ==========
+        // ========== ФУНКЦИИ РАБОТЫ С ПРОМТАМИ ==========
         async function loadPromptsFromSupabase() {
             try {
                 const { data, error } = await supabaseClient
@@ -357,30 +400,47 @@
             }
         }
         
+        function sortPrompts(prompts, mode) {
+            if (mode === 'popular') {
+                return [...prompts].sort((a, b) => (b.copies || 0) - (a.copies || 0));
+            }
+            return [...prompts];
+        }
+        
         function renderPrompts(category = "all") {
             const container = document.getElementById('promptsGrid');
             if (!container) return;
+            
             let filtered = category === "all" ? allPrompts : allPrompts.filter(p => p.category === category);
+            filtered = sortPrompts(filtered, sortMode);
+            
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="loading">😕 Нет промтов в этой категории</div>';
                 return;
             }
-            container.innerHTML = filtered.map(prompt => `
-                <div class="prompt-card" data-prompt='${JSON.stringify(prompt)}'>
-                    ${prompt.image_url ? `<img class="prompt-card-image" src="${escapeHtml(prompt.image_url)}" alt="${escapeHtml(prompt.title)}" loading="lazy">` : ''}
-                    <div class="prompt-category">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
-                    <h3 class="prompt-title">${escapeHtml(prompt.title)}</h3>
-                    <p class="prompt-description">${escapeHtml(prompt.description || '')}</p>
-                    <div class="prompt-tags">${prompt.tags ? prompt.tags.map(tag => `<span class="prompt-tag">#${escapeHtml(tag)}</span>`).join('') : ''}</div>
-                    <div class="prompt-text-preview" title="${escapeHtml(prompt.prompt)}">${escapeHtml(prompt.prompt.substring(0, 80))}...</div>
-                    <div class="prompt-footer">
-                        <span class="copy-count">📋 Копирований: ${prompt.copies || 0}</span>
-                        <button class="copy-prompt-btn" data-id="${prompt.id}" data-prompt="${escapeHtml(prompt.prompt)}" data-copies="${prompt.copies || 0}">📋 Копировать промт</button>
-                    </div>
-                </div>
-            `).join('');
             
-            // Обработчики для кнопок копирования внутри карточек
+            container.innerHTML = filtered.map(prompt => {
+                const imageUrl = prompt.image_url || '';
+                const copies = prompt.copies || 0;
+                
+                return `
+                    <div class="prompt-card" data-prompt='${JSON.stringify(prompt)}'>
+                        ${imageUrl ? `<img class="prompt-card-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prompt.title)}" loading="lazy">` : ''}
+                        <div class="prompt-category">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
+                        <h3 class="prompt-title">${escapeHtml(prompt.title)}</h3>
+                        <p class="prompt-description">${escapeHtml(prompt.description || '')}</p>
+                        <div class="prompt-tags">${prompt.tags ? prompt.tags.map(tag => `<span class="prompt-tag">#${escapeHtml(tag)}</span>`).join('') : ''}</div>
+                        <div class="prompt-text-preview" title="${escapeHtml(prompt.prompt)}">${escapeHtml(prompt.prompt.substring(0, 80))}...</div>
+                        <div class="prompt-footer">
+                            <span class="copy-count">📋 Копирований: ${copies}</span>
+                            <button class="copy-prompt-btn" data-id="${prompt.id}" data-prompt="${escapeHtml(prompt.prompt)}" data-copies="${copies}">
+                                📋 Копировать промт
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
             document.querySelectorAll('.copy-prompt-btn').forEach(btn => {
                 btn.addEventListener('click', async function(e) {
                     e.stopPropagation();
@@ -391,10 +451,8 @@
                 });
             });
             
-            // Обработчики для клика по карточке (открыть модалку)
             document.querySelectorAll('.prompt-card').forEach(card => {
                 card.addEventListener('click', (e) => {
-                    // Если клик был по кнопке копирования — не открываем модалку
                     if (e.target.closest('.copy-prompt-btn')) return;
                     const promptData = JSON.parse(card.dataset.prompt);
                     openModal(promptData);
@@ -406,24 +464,25 @@
             try {
                 await navigator.clipboard.writeText(promptText);
                 await incrementCopyCount(promptId, currentCopies);
-                // Обновляем локальные данные
+                
                 const idx = allPrompts.findIndex(p => p.id === promptId);
                 if (idx !== -1) allPrompts[idx].copies = currentCopies + 1;
-                // Визуальный эффект
+                
                 const original = buttonElement.innerHTML;
                 buttonElement.innerHTML = '✅ Скопировано!';
                 setTimeout(() => { buttonElement.innerHTML = original; }, 1500);
-                // Обновляем счётчик в карточке
+                
                 const copySpan = buttonElement.closest('.prompt-card')?.querySelector('.copy-count');
                 if (copySpan) copySpan.textContent = `📋 Копирований: ${currentCopies + 1}`;
+                
+                renderPrompts(currentCategory);
             } catch (err) {
                 alert('Не удалось скопировать текст');
             }
         }
         
-        // ========== 5. МОДАЛЬНОЕ ОКНО ==========
+        // ========== МОДАЛЬНОЕ ОКНО ==========
         function openModal(prompt) {
-            // Удаляем старую модалку, если есть
             const existingModal = document.querySelector('.modal');
             if (existingModal) existingModal.remove();
             
@@ -444,43 +503,47 @@
             `;
             document.body.appendChild(modal);
             
-            // Закрытие по крестику или клику вне окна
             modal.querySelector('.close-modal').onclick = () => modal.remove();
             modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
             
-            // Кнопка копирования в модалке
             const copyBtn = modal.querySelector('.modal-copy');
             copyBtn.onclick = async () => {
                 const text = copyBtn.getAttribute('data-prompt');
                 const id = parseInt(copyBtn.getAttribute('data-id'));
                 const copies = parseInt(copyBtn.getAttribute('data-copies')) || 0;
                 await handleCopy(text, id, copies, copyBtn);
-                // Можно показать уведомление
                 const original = copyBtn.innerHTML;
                 copyBtn.innerHTML = '✅ Скопировано!';
                 setTimeout(() => { copyBtn.innerHTML = original; }, 1500);
             };
             
-            // Кнопка "Улучшить" — копирует промт и переходит на главную
             const improveBtn = modal.querySelector('.modal-improve');
             improveBtn.onclick = () => {
                 const promptText = improveBtn.getAttribute('data-prompt');
-                // Сохраняем промт в localStorage или sessionStorage для переноса на главную
                 sessionStorage.setItem('improvePrompt', promptText);
-                // Переходим на главную страницу
                 window.location.href = 'index.html';
             };
         }
         
-        // ========== 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function getCategoryIcon(cat) {
-            const icons = { midjourney: "🎨", chatgpt: "💬", business: "💼", creative: "✨" };
+            const icons = {
+                midjourney: "🎨", chatgpt: "💬", business: "💼", creative: "✨",
+                photo: "📷", code: "💻", excel: "📊", video: "🎬", music: "🎵",
+                design: "🎨", marketing: "📈", seo: "🔍", social: "📱"
+            };
             return icons[cat] || "📌";
         }
+        
         function getCategoryName(cat) {
-            const names = { midjourney: "Midjourney", chatgpt: "ChatGPT", business: "Бизнес", creative: "Креатив" };
+            const names = {
+                midjourney: "Midjourney", chatgpt: "ChatGPT", business: "Бизнес", creative: "Креатив",
+                photo: "Фото", code: "Код", excel: "Excel", video: "Видео", music: "Музыка",
+                design: "Дизайн", marketing: "Маркетинг", seo: "SEO", social: "Соцсети"
+            };
             return names[cat] || cat;
         }
+        
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -488,9 +551,27 @@
             return div.innerHTML;
         }
         
-        // ========== 7. ЗАПУСК ==========
+        // ========== СОРТИРОВКА ==========
+        const sortBtn = document.getElementById('sortByCopiesBtn');
+        if (sortBtn) {
+            sortBtn.addEventListener('click', () => {
+                if (sortMode === 'default') {
+                    sortMode = 'popular';
+                    sortBtn.innerHTML = '📊 По популярности ↑';
+                    sortBtn.classList.add('active');
+                } else {
+                    sortMode = 'default';
+                    sortBtn.innerHTML = '📊 По популярности ↓';
+                    sortBtn.classList.remove('active');
+                }
+                renderPrompts(currentCategory);
+            });
+        }
+        
+        // ========== ЗАПУСК ==========
         document.addEventListener('DOMContentLoaded', async () => {
             await loadPromptsFromSupabase();
+            
             const categoryBtns = document.querySelectorAll('.category-btn');
             categoryBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
