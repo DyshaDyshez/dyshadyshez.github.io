@@ -9,7 +9,7 @@
     <!-- Подключаем общий CSS -->
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- Мета-теги (копируем из index.html, но можно оставить базовые) -->
+    <!-- Мета-теги -->
     <meta name="robots" content="index, follow">
     <meta name="author" content="dyshadyshez">
     <meta name="theme-color" content="#4f6af5">
@@ -78,6 +78,14 @@
             border-color: var(--accent);
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
         }
+        .prompt-card-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            background: var(--input-bg);
+        }
         .prompt-category {
             display: inline-block;
             background: var(--accent);
@@ -85,7 +93,7 @@
             padding: 0.2rem 0.8rem;
             border-radius: 20px;
             font-size: 0.75rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
         }
         .prompt-title {
             font-size: 1.2rem;
@@ -97,6 +105,7 @@
             color: var(--text-muted);
             font-size: 0.85rem;
             margin-bottom: 1rem;
+            line-height: 1.4;
         }
         .prompt-tags {
             display: flex;
@@ -123,6 +132,16 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .prompt-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        .copy-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
         .copy-prompt-btn {
             background: var(--accent);
             color: white;
@@ -130,9 +149,10 @@
             padding: 0.6rem 1rem;
             border-radius: 30px;
             cursor: pointer;
-            width: 100%;
             font-weight: 500;
             transition: 0.2s;
+            flex: 1;
+            margin-left: 0.5rem;
         }
         .copy-prompt-btn:hover {
             transform: scale(1.02);
@@ -142,6 +162,11 @@
             text-align: center;
             padding: 2rem;
             color: var(--text-muted);
+        }
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            color: #e53e3e;
         }
         
         @media (max-width: 700px) {
@@ -163,7 +188,7 @@
     <div class="main-panel">
         <div class="header">
             <div style="display: flex; align-items: center;">
-                <img src="ref_img/ready_promts.png" alt="Промт-мастер" style="height: 80px; width: auto; border-radius: 8px;">
+                <img src="og-image_v2.png" alt="Промт-мастер" style="height: 80px; width: auto; border-radius: 8px;">
                 <span style="font-size: 2rem; font-weight: 500; margin-left: 15px; background: linear-gradient(to right, #4f6af5, #b0c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Промт-мастер</span>
             </div>
             
@@ -212,103 +237,73 @@
         </div>
     </div>
 
+    <!-- Подключаем Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <!-- Подключаем общий JS -->
     <script src="js/script.js"></script>
     
-    <!-- Специфичный JS для страницы промтов -->
+    <!-- Специфичный JS для страницы промтов с Supabase (только публичный ключ) -->
     <script>
-        // Данные промтов
-        const promptsData = [
-            {
-                id: 1,
-                title: "Киберпанк портрет",
-                category: "midjourney",
-                prompt: "cyberpunk portrait, neon lights, futuristic city background, detailed face, 8k, ultra realistic, cinematic lighting --ar 16:9 --stylize 250",
-                description: "Стильный портрет в киберпанк стиле с неоновой подсветкой",
-                tags: ["портрет", "киберпанк", "неон"]
-            },
-            {
-                id: 2,
-                title: "Фэнтези пейзаж",
-                category: "midjourney",
-                prompt: "fantasy landscape, magical forest, glowing mushrooms, ancient ruins, misty mountains, golden hour, 8k, detailed --ar 16:9",
-                description: "Волшебный фэнтезийный пейзаж с детальной проработкой",
-                tags: ["пейзаж", "фэнтези", "лес"]
-            },
-            {
-                id: 3,
-                title: "Бизнес-письмо клиенту",
-                category: "chatgpt",
-                prompt: "Напиши профессиональное письмо клиенту, который задерживает оплату. Тон: вежливый, но настойчивый. Включи: напоминание о сроке, сумму задолженности, предложение связаться для уточнения.",
-                description: "Шаблон для деловой переписки",
-                tags: ["бизнес", "письмо", "клиенты"]
-            },
-            {
-                id: 4,
-                title: "Пост для Instagram",
-                category: "chatgpt",
-                prompt: "Напиши вовлекающий пост для Instagram на тему [тема]. Включи: цепляющий заголовок, 3 полезных совета, вопрос к аудитории, 5 релевантных хэштегов. Тон: дружелюбный, экспертный.",
-                description: "Универсальный шаблон для соцсетей",
-                tags: ["соцсети", "маркетинг", "контент"]
-            },
-            {
-                id: 5,
-                title: "Коммерческое предложение",
-                category: "business",
-                prompt: "Создай коммерческое предложение для [услуга/продукт]. Структура: 1) Проблема клиента, 2) Наше решение, 3) Преимущества, 4) Условия и цены, 5) Призыв к действию.",
-                description: "Шаблон эффективного коммерческого предложения",
-                tags: ["продажи", "КП", "клиенты"]
-            },
-            {
-                id: 6,
-                title: "Сценарий видео",
-                category: "creative",
-                prompt: "Напиши сценарий для 60-секундного видео на тему [тема]. Структура: 0-5 сек — хук, 5-30 сек — проблема, 30-50 сек — решение, 50-60 сек — призыв к действию.",
-                description: "Шаблон для создания видео-контента",
-                tags: ["видео", "сценарий", "контент"]
-            },
-            {
-                id: 7,
-                title: "Минималистичный логотип",
-                category: "midjourney",
-                prompt: "minimalist logo design, abstract geometric shape, clean lines, modern, white background, vector style, simple --no text --ar 1:1",
-                description: "Современный минималистичный логотип",
-                tags: ["логотип", "минимализм", "дизайн"]
-            },
-            {
-                id: 8,
-                title: "План продаж",
-                category: "business",
-                prompt: "Разработай план продаж на квартал. Включи: анализ текущей ситуации, цели по выручке, этапы воронки продаж, KPI для отдела, план действий на каждый месяц.",
-                description: "Структурированный план продаж",
-                tags: ["продажи", "план", "бизнес"]
-            },
-            {
-                id: 9,
-                title: "Идеи для блога",
-                category: "creative",
-                prompt: "Сгенерируй 20 идей для блога на тему [тема]. Идеи должны быть разных форматов: списки, гайды, личные истории, интервью, обзоры, кейсы, лайфхаки.",
-                description: "Генератор идей для контента",
-                tags: ["блог", "контент", "идеи"]
-            },
-            {
-                id: 10,
-                title: "React компонент",
-                category: "chatgpt",
-                prompt: "Создай React компонент [название] с TypeScript. Компонент должен: принимать пропсы, иметь внутреннее состояние, обрабатывать события, включать CSS модули.",
-                description: "Шаблон для React разработки",
-                tags: ["react", "typescript", "фронтенд"]
+        // ========== НАСТРОЙКИ SUPABASE ==========
+        // Используем ТОЛЬКО публичный (anon) ключ. Секретный ключ НИКОГДА не вставляем в код сайта!
+        const SUPABASE_URL = 'https://ligmsihssbvolgdogaqm.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_gC9UkfH2xkJGqGlnIgd-YA_7Ksa09Xb';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Глобальные переменные
+        let allPrompts = [];
+        let currentCategory = 'all';
+        
+        // ========== ФУНКЦИИ ==========
+        
+        // Загрузка промтов из Supabase
+        async function loadPromptsFromSupabase() {
+            try {
+                const { data, error } = await supabase
+                    .from('prompts')
+                    .select('*')
+                    .order('id', { ascending: true });
+                
+                if (error) throw error;
+                
+                allPrompts = data || [];
+                renderPrompts(currentCategory);
+                
+                if (allPrompts.length === 0) {
+                    document.getElementById('promptsGrid').innerHTML = '<div class="loading">📭 Пока нет промтов. Добавьте их в Supabase!</div>';
+                }
+                
+                return allPrompts;
+            } catch (error) {
+                console.error('Ошибка загрузки промтов:', error);
+                document.getElementById('promptsGrid').innerHTML = '<div class="error-message">❌ Не удалось загрузить промты. Проверьте подключение к Supabase.</div>';
+                return [];
             }
-        ];
-
-        // Функция отрисовки промтов
+        }
+        
+        // Обновление счётчика копирований
+        async function incrementCopyCount(promptId, currentCount) {
+            try {
+                const { error } = await supabase
+                    .from('prompts')
+                    .update({ copies: (currentCount || 0) + 1 })
+                    .eq('id', promptId);
+                
+                if (error) throw error;
+            } catch (error) {
+                console.error('Ошибка обновления счётчика:', error);
+            }
+        }
+        
+        // Отрисовка промтов
         function renderPrompts(category = "all") {
             const container = document.getElementById('promptsGrid');
             if (!container) return;
             
-            let filtered = promptsData;
+            let filtered = allPrompts;
             if (category !== "all") {
-                filtered = promptsData.filter(p => p.category === category);
+                filtered = allPrompts.filter(p => p.category === category);
             }
             
             if (filtered.length === 0) {
@@ -316,55 +311,105 @@
                 return;
             }
             
-            container.innerHTML = filtered.map(prompt => `
-                <div class="prompt-card">
-                    <div class="prompt-category">${getCategoryName(prompt.category)}</div>
-                    <h3 class="prompt-title">${escapeHtml(prompt.title)}</h3>
-                    <p class="prompt-description">${escapeHtml(prompt.description)}</p>
-                    <div class="prompt-tags">
-                        ${prompt.tags.map(tag => `<span class="prompt-tag">#${escapeHtml(tag)}</span>`).join('')}
+            container.innerHTML = filtered.map(prompt => {
+                const imageUrl = prompt.image_url || '';
+                const copies = prompt.copies || 0;
+                
+                return `
+                    <div class="prompt-card" data-id="${prompt.id}">
+                        ${imageUrl ? `<img class="prompt-card-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prompt.title)}" loading="lazy">` : ''}
+                        <div class="prompt-category">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
+                        <h3 class="prompt-title">${escapeHtml(prompt.title)}</h3>
+                        <p class="prompt-description">${escapeHtml(prompt.description || '')}</p>
+                        <div class="prompt-tags">
+                            ${prompt.tags ? prompt.tags.map(tag => `<span class="prompt-tag">#${escapeHtml(tag)}</span>`).join('') : ''}
+                        </div>
+                        <div class="prompt-text-preview" title="${escapeHtml(prompt.prompt)}">
+                            ${escapeHtml(prompt.prompt.substring(0, 80))}...
+                        </div>
+                        <div class="prompt-footer">
+                            <span class="copy-count">📋 Копирований: ${copies}</span>
+                            <button class="copy-prompt-btn" data-id="${prompt.id}" data-prompt="${escapeHtml(prompt.prompt)}" data-copies="${copies}">
+                                📋 Копировать промт
+                            </button>
+                        </div>
                     </div>
-                    <div class="prompt-text-preview" title="${escapeHtml(prompt.prompt)}">
-                        ${escapeHtml(prompt.prompt.substring(0, 80))}...
-                    </div>
-                    <button class="copy-prompt-btn" data-prompt="${escapeHtml(prompt.prompt)}">📋 Копировать промт</button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             // Добавляем обработчики копирования
             document.querySelectorAll('.copy-prompt-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function(e) {
+                    e.stopPropagation();
                     const promptText = this.getAttribute('data-prompt');
-                    navigator.clipboard.writeText(promptText).then(() => {
+                    const promptId = parseInt(this.getAttribute('data-id'));
+                    const currentCopies = parseInt(this.getAttribute('data-copies')) || 0;
+                    
+                    try {
+                        await navigator.clipboard.writeText(promptText);
+                        
+                        // Обновляем счётчик в Supabase
+                        await incrementCopyCount(promptId, currentCopies);
+                        
+                        // Обновляем локальные данные
+                        const promptIndex = allPrompts.findIndex(p => p.id === promptId);
+                        if (promptIndex !== -1) {
+                            allPrompts[promptIndex].copies = currentCopies + 1;
+                        }
+                        
+                        // Визуальный эффект на кнопке
                         const originalText = this.innerHTML;
                         this.innerHTML = '✅ Скопировано!';
                         setTimeout(() => {
                             this.innerHTML = originalText;
                         }, 1500);
-                    }).catch(() => alert('Не удалось скопировать'));
+                        
+                        // Обновляем счётчик в карточке
+                        const copyCountSpan = this.closest('.prompt-card')?.querySelector('.copy-count');
+                        if (copyCountSpan) {
+                            copyCountSpan.textContent = `📋 Копирований: ${currentCopies + 1}`;
+                        }
+                        
+                    } catch (err) {
+                        console.error('Ошибка копирования:', err);
+                        alert('Не удалось скопировать текст');
+                    }
                 });
             });
         }
         
-        function getCategoryName(categoryId) {
-            const categories = {
-                midjourney: "🎨 Midjourney",
-                chatgpt: "💬 ChatGPT",
-                business: "💼 Бизнес",
-                creative: "✨ Креатив"
+        // Вспомогательные функции
+        function getCategoryIcon(categoryId) {
+            const icons = {
+                midjourney: "🎨",
+                chatgpt: "💬",
+                business: "💼",
+                creative: "✨"
             };
-            return categories[categoryId] || categoryId;
+            return icons[categoryId] || "📌";
+        }
+        
+        function getCategoryName(categoryId) {
+            const names = {
+                midjourney: "Midjourney",
+                chatgpt: "ChatGPT",
+                business: "Бизнес",
+                creative: "Креатив"
+            };
+            return names[categoryId] || categoryId;
         }
         
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
         
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', () => {
-            renderPrompts("all");
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Загружаем промты
+            await loadPromptsFromSupabase();
             
             // Обработчики категорий
             const categoryBtns = document.querySelectorAll('.category-btn');
@@ -372,7 +417,8 @@
                 btn.addEventListener('click', () => {
                     categoryBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    renderPrompts(btn.dataset.category);
+                    currentCategory = btn.dataset.category;
+                    renderPrompts(currentCategory);
                 });
             });
         });
