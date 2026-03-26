@@ -489,18 +489,19 @@
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.innerHTML = `
-                <div class="modal-content">
-                    <span class="close-modal">&times;</span>
-                    <h3>📌 ${escapeHtml(prompt.title)}</h3>
-                    <div class="prompt-category" style="margin-bottom: 1rem;">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
-                    <p><strong>Описание:</strong> ${escapeHtml(prompt.description || 'Нет описания')}</p>
-                    <div class="modal-full-prompt">${escapeHtml(prompt.prompt)}</div>
-                    <div class="modal-buttons">
-                        <button class="modal-copy" data-prompt="${escapeHtml(prompt.prompt)}" data-id="${prompt.id}" data-copies="${prompt.copies || 0}">📋 Копировать</button>
-                        <button class="modal-improve" data-prompt="${escapeHtml(prompt.prompt)}">✨ Улучшить этот промт</button>
-                    </div>
-                </div>
-            `;
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3>📌 ${escapeHtml(prompt.title)}</h3>
+        <div class="prompt-category" style="margin-bottom: 1rem;">${getCategoryIcon(prompt.category)} ${getCategoryName(prompt.category)}</div>
+        ${prompt.image_url ? `<img src="${escapeHtml(prompt.image_url)}" alt="${escapeHtml(prompt.title)}" style="width: 100%; border-radius: 20px; margin-bottom: 1rem; max-height: 300px; object-fit: cover;">` : ''}
+        <p><strong>Описание:</strong> ${escapeHtml(prompt.description || 'Нет описания')}</p>
+        <div class="modal-full-prompt">${escapeHtml(prompt.prompt)}</div>
+        <div class="modal-buttons">
+            <button class="modal-copy" data-prompt="${escapeHtml(prompt.prompt)}" data-id="${prompt.id}" data-copies="${prompt.copies || 0}">📋 Копировать</button>
+            <button class="modal-improve" data-prompt="${escapeHtml(prompt.prompt)}">✨ Улучшить этот промт</button>
+        </div>
+    </div>
+`;
             document.body.appendChild(modal);
             
             modal.querySelector('.close-modal').onclick = () => modal.remove();
