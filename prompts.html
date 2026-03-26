@@ -67,7 +67,7 @@
         }
         .prompts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 1.5rem;
             margin: 2rem 0;
         }
@@ -254,12 +254,14 @@
             backdrop-filter: blur(20px);
             border-radius: 32px;
             padding: 1.5rem;
-            max-width: 450px;
+            max-width: 500px;
             width: 90%;
             z-index: 3000;
             border: 1px solid var(--accent);
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             animation: slideIn 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
         }
         @keyframes slideIn {
             from {
@@ -320,6 +322,46 @@
             background: rgba(0,0,0,0.5);
             z-index: 2999;
         }
+        
+        /* Результат улучшения */
+        .improved-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--accent);
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            word-break: break-word;
+        }
+        .copy-improved {
+            margin-top: 0.5rem;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            color: white;
+            font-size: 0.8rem;
+        }
+        .tags-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .suggestion-tag {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 30px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .suggestion-tag:hover {
+            background: var(--accent);
+            color: white;
+        }
         .loading, .error-message {
             text-align: center;
             padding: 2rem;
@@ -371,18 +413,15 @@
 
         <div class="categories-filter" id="categoriesFilter">
             <button class="category-btn active" data-category="all">🎯 Все</button>
-            <button class="category-btn" data-category="midjourney">🎨 Midjourney</button>
-            <button class="category-btn" data-category="chatgpt">💬 ChatGPT</button>
-            <button class="category-btn" data-category="business">💼 Бизнес</button>
+            <button class="category-btn" data-category="photo">📷 Фото / Изображения</button>
+            <button class="category-btn" data-category="chatgpt">💬 ChatGPT / Текст</button>
+            <button class="category-btn" data-category="business">💼 Бизнес / Маркетинг / SEO</button>
             <button class="category-btn" data-category="creative">✨ Креатив</button>
-            <button class="category-btn" data-category="photo">📷 Фото</button>
             <button class="category-btn" data-category="code">💻 Код</button>
             <button class="category-btn" data-category="excel">📊 Excel</button>
             <button class="category-btn" data-category="video">🎬 Видео</button>
             <button class="category-btn" data-category="music">🎵 Музыка</button>
             <button class="category-btn" data-category="design">🎨 Дизайн</button>
-            <button class="category-btn" data-category="marketing">📈 Маркетинг</button>
-            <button class="category-btn" data-category="seo">🔍 SEO</button>
             <button class="category-btn" data-category="social">📱 Соцсети</button>
         </div>
 
@@ -422,80 +461,89 @@
         let currentCategory = 'all';
         let sortMode = 'default';
         
-        // ========== НАСТРОЙКИ ДЛЯ КАЖДОЙ КАТЕГОРИИ ==========
+        // ========== КАТЕГОРИИ С НАСТРОЙКАМИ ==========
         const categoryImproveConfig = {
-            midjourney: {
-                title: "🎨 Midjourney — настрой улучшения",
+            photo: {
+                title: "📷 Настрой улучшения изображения",
                 fields: [
                     { name: "style", label: "Стиль", type: "select", options: ["реализм", "киберпанк", "фэнтези", "импрессионизм", "минимализм", "сюрреализм", "акварель", "аниме"] },
                     { name: "aspect", label: "Соотношение сторон", type: "select", options: ["16:9", "1:1", "9:16", "21:9"] },
+                    { name: "purpose", label: "Тип", type: "select", options: ["На моем фото", "Для персонажа", "Для продукта", "Для пейзажа", "Абстракция"] },
                     { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
-                    { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Например: неоновая подсветка, городской пейзаж..." }
-                ]
-            },
-            photo: {
-                title: "📷 Фото — настрой улучшения",
-                fields: [
-                    { name: "style", label: "Стиль обработки", type: "select", options: ["портретная ретушь", "киношный", "винтаж", "черно-белый", "HDR", "пастельный"] },
-                    { name: "purpose", label: "Для чего", type: "select", options: ["На моем фото", "Для персонажа", "Для продукта", "Для пейзажа"] },
-                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
-                    { name: "context", label: "Дополнительные пожелания", type: "textarea", placeholder: "Убрать фон, добавить эффекты..." }
-                ]
+                    { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Неон, город, природа, футуризм..." }
+                ],
+                tags: ["портрет", "пейзаж", "неон", "киберпанк", "реализм", "фэнтези", "минимализм", "8k", "hdr"]
             },
             chatgpt: {
-                title: "💬 ChatGPT — настрой улучшения",
+                title: "💬 Настрой улучшения текста",
                 fields: [
                     { name: "tone", label: "Тон текста", type: "select", options: ["официальный", "дружелюбный", "юмористический", "убедительный", "научный", "поэтический"] },
                     { name: "length", label: "Объём", type: "select", options: ["кратко", "средне", "развёрнуто"] },
                     { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
                     { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Целевая аудитория, ключевые сообщения..." }
-                ]
+                ],
+                tags: ["пост", "статья", "письмо", "сценарий", "резюме", "описание", "обзор", "инструкция"]
             },
             business: {
-                title: "💼 Бизнес — настрой улучшения",
+                title: "💼 Настрой улучшения бизнес-контента",
                 fields: [
                     { name: "style", label: "Стиль", type: "select", options: ["убедительный", "информационный", "вирусный", "сторителлинг", "лаконичный"] },
-                    { name: "target", label: "Целевая аудитория", type: "select", options: ["B2B", "B2C", "инвесторы", "партнёры"] },
+                    { name: "target", label: "Целевая аудитория", type: "select", options: ["B2B", "B2C", "инвесторы", "партнёры", "стартапы"] },
                     { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
                     { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Уникальное предложение, бюджет, сроки..." }
-                ]
+                ],
+                tags: ["продажи", "маркетинг", "сео", "реклама", "кп", "письмо", "стратегия", "аналитика"]
             },
             code: {
-                title: "💻 Код — настрой улучшения",
+                title: "💻 Настрой улучшения кода",
                 fields: [
                     { name: "style", label: "Стиль кода", type: "select", options: ["чистый", "комментированный", "оптимизированный", "ООП", "функциональный"] },
                     { name: "language", label: "Язык", type: "select", options: ["JavaScript", "Python", "TypeScript", "SQL", "другой"] },
                     { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
                     { name: "context", label: "Дополнительные требования", type: "textarea", placeholder: "Библиотеки, фреймворки, примеры..." }
-                ]
+                ],
+                tags: ["react", "python", "sql", "api", "docker", "тесты", "алгоритм", "оптимизация"]
             },
             excel: {
-                title: "📊 Excel — настрой улучшения",
+                title: "📊 Настрой улучшения Excel",
                 fields: [
                     { name: "type", label: "Тип", type: "select", options: ["формула", "макрос VBA", "сводная таблица", "диаграмма"] },
                     { name: "complexity", label: "Сложность", type: "select", options: ["базовый", "продвинутый", "экспертный"] },
                     { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
                     { name: "context", label: "Данные и требования", type: "textarea", placeholder: "Структура данных, нужные функции..." }
-                ]
+                ],
+                tags: ["vlookup", "сводная", "макрос", "диаграмма", "формула", "анализ", "дашборд"]
             },
             creative: {
-                title: "✨ Креатив — настрой улучшения",
+                title: "✨ Настрой улучшения креатива",
                 fields: [
                     { name: "style", label: "Стиль", type: "select", options: ["поэтический", "игровой", "эпический", "минималистичный", "сюрреалистичный"] },
                     { name: "mood", label: "Настроение", type: "select", options: ["радостное", "таинственное", "драматичное", "романтичное", "юмористичное"] },
                     { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
                     { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Персонажи, локации, ключевые элементы..." }
-                ]
+                ],
+                tags: ["история", "сценарий", "поэзия", "персонаж", "мир", "приключение", "фантазия"]
+            },
+            social: {
+                title: "📱 Настрой улучшения для соцсетей",
+                fields: [
+                    { name: "type", label: "Тип контента", type: "select", options: ["Картинка / Изображение", "Пост / Текст", "Сторис", "Reels / Видео"] },
+                    { name: "platform", label: "Платформа", type: "select", options: ["Instagram", "Telegram", "VK", "TikTok", "Twitter"] },
+                    { name: "style", label: "Стиль", type: "select", options: ["экспертный", "развлекательный", "вовлекающий", "продающий", "личный"] },
+                    { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
+                    { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Тема, целевая аудитория, ключевые хэштеги..." }
+                ],
+                tags: ["пост", "сторис", "reels", "instagram", "telegram", "vkontakte", "tiktok", "вовлечение"]
             }
         };
         
-        // Общие настройки для остальных категорий
         const defaultConfig = {
             title: "✨ Настрой улучшения",
             fields: [
                 { name: "detail", label: "Детализация", type: "range", min: 1, max: 5, default: 3 },
                 { name: "context", label: "Дополнительный контекст", type: "textarea", placeholder: "Что нужно учесть?" }
-            ]
+            ],
+            tags: ["улучшить", "детализировать", "оптимизировать"]
         };
         
         // ========== ТЕМА ==========
@@ -661,7 +709,7 @@
             }
         }
         
-        // ========== ФУНКЦИЯ УЛУЧШЕНИЯ ==========
+        // ========== ФУНКЦИЯ УЛУЧШЕНИЯ (всплывающее окно) ==========
         function openImprovePopup(prompt) {
             const config = categoryImproveConfig[prompt.category] || defaultConfig;
             
@@ -684,12 +732,7 @@
                     const defaultValue = field.default || 3;
                     fieldsHtml += `
                         <label style="display: block; margin-bottom: 0.3rem; font-size: 0.8rem;">${field.label}: <span id="improve_${field.name}_value">${defaultValue}</span></label>
-                        <input type="range" id="improve_${field.name}" min="${field.min}" max="${field.max}" value="${defaultValue}" step="1">
-                        <script>
-                            document.getElementById('improve_${field.name}').oninput = function() {
-                                document.getElementById('improve_${field.name}_value').textContent = this.value;
-                            };
-                        <\/script>
+                        <input type="range" id="improve_${field.name}" min="${field.min}" max="${field.max}" value="${defaultValue}" step="1" oninput="document.getElementById('improve_${field.name}_value').textContent = this.value">
                     `;
                 } else if (field.type === 'textarea') {
                     fieldsHtml += `
@@ -699,18 +742,47 @@
                 }
             });
             
+            // Добавляем облако тегов
+            const tagsHtml = config.tags ? `
+                <div style="margin: 1rem 0;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.8rem;">🏷️ Добавить теги (нажми для выбора):</label>
+                    <div class="tags-cloud" id="tagsCloud">
+                        ${config.tags.map(tag => `<span class="suggestion-tag" data-tag="${tag}">#${tag}</span>`).join('')}
+                    </div>
+                </div>
+            ` : '';
+            
             popup.innerHTML = `
                 <h4>${config.title}</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Исходный промт: <strong>${escapeHtml(prompt.title)}</strong></p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Исходный промт: <strong>${escapeHtml(prompt.title)}</strong>
+                </p>
                 ${fieldsHtml}
+                ${tagsHtml}
                 <div class="popup-buttons">
-                    <button class="generate-btn" id="generateImprovedBtn">✨ Сгенерировать улучшенный промт</button>
+                    <button class="generate-btn" id="generateImprovedBtn">✨ Улучшить промт</button>
                     <button class="cancel-btn" id="cancelImproveBtn">Отмена</button>
                 </div>
+                <div id="improvedResult" style="margin-top: 1rem;"></div>
             `;
             
             document.body.appendChild(overlay);
             document.body.appendChild(popup);
+            
+            // Обработчик для тегов
+            setTimeout(() => {
+                const tags = document.querySelectorAll('.suggestion-tag');
+                tags.forEach(tag => {
+                    tag.addEventListener('click', () => {
+                        const tagText = tag.getAttribute('data-tag');
+                        const contextField = document.getElementById('improve_context');
+                        if (contextField) {
+                            const current = contextField.value;
+                            contextField.value = current ? `${current}, ${tagText}` : tagText;
+                        }
+                    });
+                });
+            }, 100);
             
             document.getElementById('cancelImproveBtn').onclick = () => {
                 overlay.remove();
@@ -731,25 +803,38 @@
                 
                 const improvedPrompt = generateImprovedPrompt(prompt, values);
                 
-                // Сохраняем в sessionStorage и перенаправляем на главную
-                sessionStorage.setItem('improvePrompt', improvedPrompt);
-                sessionStorage.setItem('improveCategory', prompt.category);
-                window.location.href = 'index.html';
+                const resultDiv = document.getElementById('improvedResult');
+                resultDiv.innerHTML = `
+                    <div class="improved-result">
+                        <strong>✨ Улучшенный промт:</strong><br>
+                        ${escapeHtml(improvedPrompt)}
+                        <button class="copy-improved" id="copyImprovedBtn">📋 Копировать улучшенный</button>
+                    </div>
+                `;
+                
+                document.getElementById('copyImprovedBtn').onclick = async () => {
+                    await navigator.clipboard.writeText(improvedPrompt);
+                    const btn = document.getElementById('copyImprovedBtn');
+                    btn.textContent = '✅ Скопировано!';
+                    setTimeout(() => { btn.textContent = '📋 Копировать улучшенный'; }, 1500);
+                };
             };
         }
         
         function generateImprovedPrompt(prompt, values) {
             let result = prompt.prompt;
             
-            if (values.style) {
-                result = `${result} in ${values.style} style`;
-            }
-            if (values.tone) {
-                result = `${result}. Tone: ${values.tone}`;
-            }
-            if (values.aspect) {
-                result = `${result} --ar ${values.aspect}`;
-            }
+            if (values.style) result = `${result}. Style: ${values.style}`;
+            if (values.tone) result = `${result}. Tone: ${values.tone}`;
+            if (values.aspect) result = `${result} --ar ${values.aspect}`;
+            if (values.purpose) result = `${result}. For: ${values.purpose}`;
+            if (values.type) result = `${result}. Type: ${values.type}`;
+            if (values.platform) result = `${result}. Platform: ${values.platform}`;
+            if (values.target) result = `${result}. Target audience: ${values.target}`;
+            if (values.complexity) result = `${result}. Complexity: ${values.complexity}`;
+            if (values.mood) result = `${result}. Mood: ${values.mood}`;
+            if (values.language && values.language !== 'другой') result = `${result}. Language: ${values.language}`;
+            
             if (values.detail) {
                 const detailLevels = {
                     1: 'minimal detail',
@@ -760,12 +845,7 @@
                 };
                 result = `${result}, ${detailLevels[values.detail] || 'detailed'}`;
             }
-            if (values.context) {
-                result = `${result}. Additional context: ${values.context}`;
-            }
-            if (values.purpose) {
-                result = `${result}. Purpose: ${values.purpose}`;
-            }
+            if (values.context) result = `${result}. Additional context: ${values.context}`;
             if (values.length === 'кратко') result = `${result}. Keep it concise.`;
             if (values.length === 'развёрнуто') result = `${result}. Provide detailed explanation.`;
             
@@ -820,18 +900,18 @@
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function getCategoryIcon(cat) {
             const icons = {
-                midjourney: "🎨", chatgpt: "💬", business: "💼", creative: "✨",
-                photo: "📷", code: "💻", excel: "📊", video: "🎬", music: "🎵",
-                design: "🎨", marketing: "📈", seo: "🔍", social: "📱"
+                photo: "📷", chatgpt: "💬", business: "💼", creative: "✨",
+                code: "💻", excel: "📊", video: "🎬", music: "🎵",
+                design: "🎨", social: "📱"
             };
             return icons[cat] || "📌";
         }
         
         function getCategoryName(cat) {
             const names = {
-                midjourney: "Midjourney", chatgpt: "ChatGPT", business: "Бизнес", creative: "Креатив",
-                photo: "Фото", code: "Код", excel: "Excel", video: "Видео", music: "Музыка",
-                design: "Дизайн", marketing: "Маркетинг", seo: "SEO", social: "Соцсети"
+                photo: "Фото / Изображения", chatgpt: "ChatGPT / Текст", business: "Бизнес / Маркетинг / SEO",
+                creative: "Креатив", code: "Код", excel: "Excel", video: "Видео", music: "Музыка",
+                design: "Дизайн", social: "Соцсети"
             };
             return names[cat] || cat;
         }
