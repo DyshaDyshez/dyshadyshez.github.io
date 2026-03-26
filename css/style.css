@@ -6,99 +6,6 @@
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-
-
-.prompts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-    margin: 2rem 0;
-}
-
-@media (max-width: 550px) {
-    .prompts-grid {
-        grid-template-columns: 1fr;
-        gap: 0.8rem;
-    }
-    
-    .prompt-card {
-        padding: 1rem;
-    }
-}
-
-
-
-.prompts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-    margin: 1.5rem 0;
-}
-
-@media (max-width: 600px) {
-    .prompts-grid {
-        grid-template-columns: 1fr;
-        gap: 0.8rem;
-    }
-}
-
-
-/* Исправление для телефонов */
-@media (max-width: 480px) {
-    .prompts-grid {
-        grid-template-columns: 1fr !important;
-        gap: 1rem;
-    }
-    
-    .prompt-card {
-        padding: 1rem;
-    }
-    
-    .prompt-card-image {
-        height: 140px;
-    }
-    
-    .prompt-title {
-        font-size: 1rem;
-    }
-    
-    .prompt-description {
-        font-size: 0.75rem;
-    }
-    
-    .prompt-text-preview {
-        font-size: 0.7rem;
-        padding: 0.5rem;
-    }
-    
-    .prompt-footer {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .prompt-footer .button-group {
-        width: 100%;
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .copy-prompt-btn, .improve-prompt-btn {
-        flex: 1;
-        text-align: center;
-        padding: 0.5rem;
-        font-size: 0.7rem;
-        white-space: nowrap;
-    }
-    
-    .copy-count {
-        text-align: center;
-        width: 100%;
-    }
-}
-
-
-
-
 :root {
     --bg-gradient-start: #f0f4ff;
     --bg-gradient-end: #d9e2f0;
@@ -119,6 +26,7 @@
     --shape-color4: rgba(50, 200, 100, 0.1);
     --shape-color5: rgba(255, 180, 50, 0.1);
 }
+
 [data-theme="dark"] {
     --bg-gradient-start: #1a1f2e;
     --bg-gradient-end: #0b0d17;
@@ -139,6 +47,7 @@
     --shape-color4: rgba(100, 255, 150, 0.08);
     --shape-color5: rgba(255, 200, 100, 0.1);
 }
+
 body {
     min-height: 100vh;
     background: radial-gradient(circle at 10% 20%, var(--bg-gradient-start), var(--bg-gradient-end));
@@ -151,6 +60,7 @@ body {
     padding: 1rem;
     transition: background 0.3s, color 0.3s;
 }
+
 .shapes {
     position: fixed;
     top: 0;
@@ -173,6 +83,7 @@ body {
 .shape3 { width: 250px; height: 250px; background: var(--shape-color3); top: 40%; right: 15%; border-radius: 30% 70% 70% 30%; filter: blur(50px); }
 .shape4 { width: 400px; height: 400px; background: var(--shape-color4); bottom: 20%; left: 10%; border-radius: 40% 60% 30% 70%; }
 .shape5 { width: 200px; height: 200px; background: var(--shape-color5); top: 15%; right: 25%; border-radius: 50% 20% 50% 20%; filter: blur(30px); }
+
 .main-panel {
     position: relative;
     z-index: 10;
@@ -187,6 +98,7 @@ body {
     box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.5);
     transition: background 0.3s, border 0.3s;
 }
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -195,6 +107,7 @@ body {
     flex-wrap: wrap;
     gap: 1rem;
 }
+
 h1 {
     font-size: 2.5rem;
     font-weight: 500;
@@ -204,6 +117,7 @@ h1 {
     -webkit-text-fill-color: transparent;
     margin-bottom: 0;
 }
+
 .theme-toggle {
     background: var(--input-bg);
     border: 1px solid var(--input-border);
@@ -216,7 +130,11 @@ h1 {
     color: var(--text-secondary);
     transition: 0.2s;
 }
-.theme-toggle:hover { border-color: var(--accent); transform: scale(1.02); }
+.theme-toggle:hover {
+    border-color: var(--accent);
+    transform: scale(1.02);
+}
+
 .subhead {
     font-size: 1rem;
     color: var(--text-muted);
@@ -224,7 +142,11 @@ h1 {
     border-left: 3px solid var(--accent);
     padding-left: 1rem;
 }
-.input-group { margin-bottom: 1.5rem; }
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
 label {
     display: block;
     font-size: 0.9rem;
@@ -233,6 +155,7 @@ label {
     color: var(--text-secondary);
     margin-bottom: 0.6rem;
 }
+
 textarea, select, input[type=range] {
     width: 100%;
     background: var(--input-bg);
@@ -245,18 +168,25 @@ textarea, select, input[type=range] {
     transition: border 0.2s, box-shadow 0.2s, transform 0.2s, background 0.3s;
     backdrop-filter: blur(4px);
 }
-textarea { min-height: 100px; resize: vertical; }
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
 textarea:focus, select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(79, 106, 245, 0.2);
 }
+
 .select-row {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
     margin-bottom: 1.5rem;
 }
-.select-item { flex: 1 1 200px; }
+.select-item {
+    flex: 1 1 200px;
+}
+
 .extra-settings {
     background: var(--result-bg);
     border-radius: 24px;
@@ -268,9 +198,21 @@ textarea:focus, select:focus {
     gap: 1.5rem;
     transition: background 0.3s;
 }
-.setting-item { flex: 1 1 200px; min-width: 160px; }
-.setting-item label { margin-bottom: 0.4rem; font-size: 0.85rem; }
-.range-value { display: inline-block; margin-left: 0.5rem; color: var(--accent); font-weight: 600; }
+.setting-item {
+    flex: 1 1 200px;
+    min-width: 160px;
+}
+.setting-item label {
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+}
+.range-value {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: var(--accent);
+    font-weight: 600;
+}
+
 .tags-container {
     display: flex;
     flex-wrap: wrap;
@@ -290,12 +232,15 @@ textarea:focus, select:focus {
     transition: 0.2s;
     user-select: none;
 }
-.tag-checkbox input { display: none; }
+.tag-checkbox input {
+    display: none;
+}
 .tag-checkbox:has(input:checked) {
     background: var(--accent);
     border-color: var(--accent);
     color: white;
 }
+
 .aspect-ratio-group {
     display: flex;
     gap: 0.5rem;
@@ -325,6 +270,7 @@ textarea:focus, select:focus {
     border-color: var(--accent);
     color: white;
 }
+
 .button-group {
     display: flex;
     gap: 1rem;
@@ -356,6 +302,7 @@ textarea:focus, select:focus {
     transform: scale(1.02) translateY(-2px);
     filter: brightness(1.1);
 }
+
 .result-area {
     background: var(--result-bg);
     border-radius: 24px;
@@ -375,7 +322,10 @@ textarea:focus, select:focus {
     flex-wrap: wrap;
     gap: 0.5rem;
 }
-.result-actions { display: flex; gap: 0.6rem; }
+.result-actions {
+    display: flex;
+    gap: 0.6rem;
+}
 .copy-btn {
     background: var(--input-bg);
     border: 1px solid var(--input-border);
@@ -412,6 +362,7 @@ textarea:focus, select:focus {
     border-radius: 16px;
     border: 1px solid var(--input-border);
 }
+
 .faq-section {
     margin-top: 2rem;
     background: var(--result-bg);
@@ -419,7 +370,10 @@ textarea:focus, select:focus {
     padding: 1.5rem;
     border: 1px solid var(--input-border);
 }
-.faq-section h3 { margin-bottom: 1rem; color: var(--text-primary); }
+.faq-section h3 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
 details {
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--input-border);
@@ -436,6 +390,7 @@ details p {
     color: var(--text-secondary);
     padding-left: 1rem;
 }
+
 .examples {
     margin-top: 1.8rem;
     display: flex;
@@ -443,7 +398,10 @@ details p {
     gap: 0.5rem;
     align-items: center;
 }
-.examples span { color: var(--text-muted); font-size: 0.9rem; }
+.examples span {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
 .example-chip {
     background: var(--input-bg);
     border: 1px solid var(--input-border);
@@ -460,6 +418,7 @@ details p {
     color: white;
     transform: translateY(-2px);
 }
+
 .footer {
     margin-top: 2rem;
     text-align: center;
@@ -470,8 +429,14 @@ details p {
     gap: 1.5rem;
     flex-wrap: wrap;
 }
-.footer a { color: var(--accent); text-decoration: none; }
-.footer a:hover { text-decoration: underline; }
+.footer a {
+    color: var(--accent);
+    text-decoration: none;
+}
+.footer a:hover {
+    text-decoration: underline;
+}
+
 .share-buttons {
     display: flex;
     gap: 0.5rem;
@@ -492,14 +457,6 @@ details p {
     background: var(--accent);
     color: white;
 }
-@media (max-width: 700px) {
-    .main-panel { padding: 1.5rem; }
-    h1 { font-size: 2rem; }
-    .extra-settings { flex-direction: column; gap: 1rem; }
-    .button-group { flex-direction: column; }
-    .aspect-btn[data-ratio] { width: auto !important; flex: 1; }
-    .footer { flex-direction: column; gap: 0.5rem; }
-}
 
 /* ===== НАВИГАЦИЯ ===== */
 .main-nav {
@@ -510,7 +467,6 @@ details p {
     border-radius: 60px;
     border: 1px solid var(--input-border);
 }
-
 .nav-link {
     padding: 0.5rem 1.2rem;
     border-radius: 40px;
@@ -520,18 +476,17 @@ details p {
     font-weight: 500;
     transition: all 0.2s ease;
 }
-
 .nav-link:hover {
     background: var(--accent);
     color: white;
     transform: translateY(-1px);
 }
-
 .nav-link.active {
     background: var(--accent);
     color: white;
 }
 
+/* ===== СТИЛИ ДЛЯ СТРАНИЦЫ ПРОМТОВ ===== */
 .sort-btn {
     background: var(--input-bg);
     border: 1px solid var(--input-border);
@@ -549,4 +504,141 @@ details p {
 .sort-btn.active {
     background: var(--accent);
     color: white;
+}
+
+/* === СЕТКА КАРТОЧЕК (АДАПТИВНАЯ) === */
+.prompts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+/* Планшеты и маленькие экраны */
+@media (max-width: 768px) {
+    .prompts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+}
+
+/* Телефоны (менее 550px) */
+@media (max-width: 550px) {
+    .prompts-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .prompt-card {
+        padding: 1rem;
+    }
+    .prompt-card-image {
+        height: 140px;
+    }
+    .prompt-title {
+        font-size: 1rem;
+    }
+    .prompt-description {
+        font-size: 0.75rem;
+    }
+    .prompt-text-preview {
+        font-size: 0.7rem;
+        padding: 0.5rem;
+    }
+    .prompt-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    .prompt-footer .button-group {
+        width: 100%;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    .copy-prompt-btn, .improve-prompt-btn {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        font-size: 0.7rem;
+        white-space: normal;
+    }
+    .copy-count {
+        text-align: center;
+        width: 100%;
+        margin-bottom: 0.3rem;
+    }
+}
+
+/* Очень узкие телефоны (например, iPhone SE) */
+@media (max-width: 380px) {
+    .prompt-card {
+        padding: 0.8rem;
+    }
+    .prompt-card-image {
+        height: 120px;
+    }
+    .prompt-title {
+        font-size: 0.9rem;
+    }
+    .prompt-tag {
+        font-size: 0.6rem;
+    }
+}
+
+/* Адаптация шапки и навигации */
+@media (max-width: 700px) {
+    .main-panel {
+        padding: 1.2rem;
+    }
+    .header {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .header > div:first-child {
+        width: 100%;
+        justify-content: center;
+    }
+    .main-nav {
+        order: 2;
+        margin: 0 auto;
+    }
+    .theme-toggle {
+        order: 3;
+    }
+    .subhead {
+        font-size: 0.85rem;
+    }
+    .button-group {
+        flex-direction: column;
+    }
+    .extra-settings {
+        flex-direction: column;
+    }
+    .aspect-btn[data-ratio] {
+        width: auto !important;
+        flex: 1;
+    }
+    .footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .categories-filter {
+        gap: 0.4rem;
+    }
+    .category-btn {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.7rem;
+    }
+}
+
+/* Адаптация модальных окон */
+@media (max-width: 700px) {
+    .modal-content {
+        padding: 1rem;
+        width: 95%;
+    }
+    .improve-popup {
+        width: 95%;
+        padding: 1rem;
+    }
 }
