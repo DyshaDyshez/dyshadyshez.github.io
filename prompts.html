@@ -244,12 +244,22 @@
         </div>
 
         <div class="categories-filter" id="categoriesFilter">
-            <button class="category-btn active" data-category="all">🎯 Все</button>
-            <button class="category-btn" data-category="midjourney">🎨 Midjourney</button>
-            <button class="category-btn" data-category="chatgpt">💬 ChatGPT</button>
-            <button class="category-btn" data-category="business">💼 Бизнес</button>
-            <button class="category-btn" data-category="creative">✨ Креатив</button>
-        </div>
+    <button class="category-btn active" data-category="all">🎯 Все</button>
+    <button class="category-btn" data-category="midjourney">🎨 Midjourney</button>
+    <button class="category-btn" data-category="chatgpt">💬 ChatGPT</button>
+    <button class="category-btn" data-category="business">💼 Бизнес</button>
+    <button class="category-btn" data-category="creative">✨ Креатив</button>
+    <button class="category-btn" data-category="photo">📷 Фото</button>
+    <button class="category-btn" data-category="code">💻 Код</button>
+    <button class="category-btn" data-category="excel">📊 Excel</button>
+</div>
+
+<!-- КНОПКА СОРТИРОВКИ -->
+<div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+    <button id="sortByCopiesBtn" class="sort-btn" style="background: var(--input-bg); color: var(--text-secondary); border: 1px solid var(--input-border);">
+        📊 По популярности ↓
+    </button>
+</div>
 
         <div class="prompts-grid" id="promptsGrid">
             <div class="loading">Загрузка промтов...</div>
