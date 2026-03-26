@@ -17,7 +17,6 @@
     
     <!-- Дополнительные стили только для этой страницы -->
     <style>
-        /* Стили для страницы промтов */
         .library-header {
             text-align: center;
             margin: 1rem 0 2rem 0;
@@ -29,8 +28,6 @@
         .library-header p {
             color: var(--text-muted);
         }
-        
-        /* Категории */
         .categories-filter {
             display: flex;
             flex-wrap: wrap;
@@ -58,8 +55,6 @@
             color: white;
             border-color: var(--accent);
         }
-        
-        /* Сетка промтов */
         .prompts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -168,7 +163,6 @@
             padding: 2rem;
             color: #e53e3e;
         }
-        
         @media (max-width: 700px) {
             .prompts-grid {
                 grid-template-columns: 1fr;
@@ -192,7 +186,6 @@
                 <span style="font-size: 2rem; font-weight: 500; margin-left: 15px; background: linear-gradient(to right, #4f6af5, #b0c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Промт-мастер</span>
             </div>
             
-            <!-- НАВИГАЦИЯ -->
             <nav class="main-nav">
                 <a href="index.html" class="nav-link">Главная</a>
                 <a href="prompts.html" class="nav-link active">Готовые промты</a>
@@ -209,7 +202,6 @@
             <p>Выберите категорию и скопируйте промт для своей нейросети</p>
         </div>
 
-        <!-- Категории -->
         <div class="categories-filter" id="categoriesFilter">
             <button class="category-btn active" data-category="all">🎯 Все</button>
             <button class="category-btn" data-category="midjourney">🎨 Midjourney</button>
@@ -218,7 +210,6 @@
             <button class="category-btn" data-category="creative">✨ Креатив</button>
         </div>
 
-        <!-- Сетка промтов -->
         <div class="prompts-grid" id="promptsGrid">
             <div class="loading">Загрузка промтов...</div>
         </div>
@@ -237,28 +228,24 @@
         </div>
     </div>
 
-    <!-- Подключаем Supabase -->
+    <!-- Подключаем Supabase SDK (ТОЛЬКО ОДИН РАЗ) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
- 
-    <!-- Специфичный JS для страницы промтов с Supabase (только публичный ключ) -->
+    <!-- Скрипт для работы с промтами -->
     <script>
         // ========== НАСТРОЙКИ SUPABASE ==========
-        // Используем ТОЛЬКО публичный (anon) ключ. Секретный ключ НИКОГДА не вставляем в код сайта!
         const SUPABASE_URL = 'https://ligmsihssbvolgdogaqm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gC9UkfH2xkJGqGlnIgd-YA_7Ksa09Xb';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // Глобальные переменные
         let allPrompts = [];
         let currentCategory = 'all';
         
         // ========== ФУНКЦИИ ==========
-        
-        // Загрузка промтов из Supabase
         async function loadPromptsFromSupabase() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('prompts')
                     .select('*')
                     .order('id', { ascending: true });
@@ -269,7 +256,7 @@
                 renderPrompts(currentCategory);
                 
                 if (allPrompts.length === 0) {
-                    document.getElementById('promptsGrid').innerHTML = '<div class="loading">📭 Пока нет промтов. Добавьте их в Supabase!</div>';
+                    document.getElementById('promptsGrid').innerHTML = '<div class="loading">📭 Пока нет промтов. Добавьте их в админ-панели!</div>';
                 }
                 
                 return allPrompts;
@@ -280,10 +267,9 @@
             }
         }
         
-        // Обновление счётчика копирований
         async function incrementCopyCount(promptId, currentCount) {
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('prompts')
                     .update({ copies: (currentCount || 0) + 1 })
                     .eq('id', promptId);
@@ -294,7 +280,6 @@
             }
         }
         
-        // Отрисовка промтов
         function renderPrompts(category = "all") {
             const container = document.getElementById('promptsGrid');
             if (!container) return;
@@ -335,7 +320,7 @@
                 `;
             }).join('');
             
-            // Добавляем обработчики копирования
+            // Обработчики копирования
             document.querySelectorAll('.copy-prompt-btn').forEach(btn => {
                 btn.addEventListener('click', async function(e) {
                     e.stopPropagation();
@@ -355,7 +340,7 @@
                             allPrompts[promptIndex].copies = currentCopies + 1;
                         }
                         
-                        // Визуальный эффект на кнопке
+                        // Визуальный эффект
                         const originalText = this.innerHTML;
                         this.innerHTML = '✅ Скопировано!';
                         setTimeout(() => {
@@ -376,7 +361,6 @@
             });
         }
         
-        // Вспомогательные функции
         function getCategoryIcon(categoryId) {
             const icons = {
                 midjourney: "🎨",
@@ -406,7 +390,6 @@
         
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
         document.addEventListener('DOMContentLoaded', async () => {
-            // Загружаем промты
             await loadPromptsFromSupabase();
             
             // Обработчики категорий
