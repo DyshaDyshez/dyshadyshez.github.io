@@ -101,17 +101,17 @@
         
         /* Сетка карточек */
         .prompts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        @media (max-width: 480px) {
-            .prompts-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-        }
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+@media (max-width: 550px) {
+    .prompts-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
         
         /* Карточка промта */
         .prompt-card {
