@@ -5,6 +5,65 @@
     box-sizing: border-box;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
+
+
+
+/* Исправление для телефонов */
+@media (max-width: 480px) {
+    .prompts-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+    
+    .prompt-card {
+        padding: 1rem;
+    }
+    
+    .prompt-card-image {
+        height: 140px;
+    }
+    
+    .prompt-title {
+        font-size: 1rem;
+    }
+    
+    .prompt-description {
+        font-size: 0.75rem;
+    }
+    
+    .prompt-text-preview {
+        font-size: 0.7rem;
+        padding: 0.5rem;
+    }
+    
+    .prompt-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .prompt-footer .button-group {
+        width: 100%;
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .copy-prompt-btn, .improve-prompt-btn {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+    
+    .copy-count {
+        text-align: center;
+        width: 100%;
+    }
+}
+
+
+
+
 :root {
     --bg-gradient-start: #f0f4ff;
     --bg-gradient-end: #d9e2f0;
